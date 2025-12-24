@@ -15,11 +15,18 @@ interface SchoolAdminDashboardProps {
   defaultTab?: string;
 }
 
+import { useSystem } from '../SystemContext';
+
 const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, user, defaultTab }) => {
+  const { state: systemState } = useSystem();
   const [activeTab, setActiveTab] = useState<string>(defaultTab || 'dash');
-  const [financeSubTab, setFinanceSubTab] = useState<'track' | 'structure' | 'history'>('track');
   const [showToast, setShowToast] = useState(false);
-  const [toastMsg, setToastMsg] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
+
+  // Lock logic
+  const isFinanceLocked = systemState.globalFinancesLocked;
+  const isSystemLocked = systemState.emergencyLockdown;
+  const [financeSubTab, setFinanceSubTab] = useState<'track' | 'structure' | 'history'>('track');
   const [selectedReceipt, setSelectedReceipt] = useState<PaymentRecord | null>(null);
 
   useEffect(() => {
@@ -27,7 +34,7 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
   }, [defaultTab]);
 
   const triggerToast = (msg: string) => {
-    setToastMsg(msg);
+    setToastMessage(msg);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
@@ -315,11 +322,29 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
           <p className="text-slate-500 font-medium italic">{school.name} | Campus Node: {user.branchId}</p>
         </div>
         <div className="flex items-center gap-3">
+          {isSystemLocked && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 rounded-xl border border-rose-100 animate-pulse">
+              <ShieldAlert size={16} />
+              <span className="text-[10px] font-black uppercase tracking-widest">HQ LOCKDOWN</span>
+            </div>
+          )}
           <div className="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100">
             <Building size={24} />
           </div>
         </div>
       </div>
+
+      {isSystemLocked && (
+        <div className="bg-rose-600 p-8 rounded-[2.5rem] text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl shadow-rose-200 border border-rose-500 animate-in zoom-in-95 duration-500">
+          <div className="flex-1">
+            <h2 className="text-2xl font-black uppercase tracking-tighter mb-2 flex items-center gap-3"><ShieldAlert size={32} /> EMERGENCY HQ PROTOCOL ACTIVE</h2>
+            <p className="text-rose-100 text-sm font-medium italic">All school operations have been sharded into READ-ONLY mode by Central HQ. Access to financial and result modifications is temporarily disabled.</p>
+          </div>
+          <div className="flex gap-2">
+            <button className="px-6 py-3 bg-white text-rose-600 font-black text-[10px] uppercase rounded-xl shadow-lg">Contact HQ Security</button>
+          </div>
+        </div>
+      )}
 
 
       <div className="flex gap-1 bg-slate-200/50 p-1.5 rounded-[1.5rem] w-fit overflow-x-auto no-scrollbar">
@@ -519,7 +544,7 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
       {showToast && (
         <div className="fixed bottom-8 right-8 bg-slate-900 text-white px-8 py-5 rounded-[2rem] shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-right-8 duration-300 z-50 border border-white/10">
           <CheckCircle2 className="text-emerald-400" />
-          <span className="font-black text-sm uppercase tracking-widest">{toastMsg}</span>
+          <span className="font-black text-sm uppercase tracking-widest">{toastMessage}</span>
         </div>
       )}
     </div>

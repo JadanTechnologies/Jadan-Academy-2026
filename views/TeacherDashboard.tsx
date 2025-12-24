@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { User, Student, Score } from '../types';
 import { MOCK_SUBJECTS, MOCK_CLASSES, GRADING_SCALE } from '../constants';
-import { 
-  Save, 
-  AlertCircle, 
-  FileSpreadsheet, 
-  Trash2, 
-  Calendar, 
-  Users, 
-  TrendingUp, 
+import {
+  Save,
+  AlertCircle,
+  FileSpreadsheet,
+  Trash2,
+  Calendar,
+  Users,
+  TrendingUp,
   BookOpen,
   ArrowUpRight,
   Download,
@@ -20,10 +20,15 @@ interface TeacherDashboardProps {
   initialTab?: string;
 }
 
+import { useSystem } from '../SystemContext';
+
 const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, initialTab }) => {
+  const { state: systemState } = useSystem();
   const [activeTab, setActiveTab] = useState(initialTab || 'dash');
   const [showSaveToast, setShowSaveToast] = useState(false);
-  
+
+  const isLocked = systemState.emergencyLockdown;
+  const isForceSync = systemState.forceGradeSync;
   // Strict Multi-Branch Filtering
   const filteredClasses = MOCK_CLASSES.filter(c => c.schoolId === user.schoolId && c.branchId === user.branchId);
   const filteredSubjects = MOCK_SUBJECTS.filter(s => s.schoolId === user.schoolId);
@@ -42,9 +47,9 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, initialTab })
     { id: 'st2', name: 'Bob Wilson', email: 'b@w.com', role: 'STUDENT' as any, studentId: 'ADM-002', classId: 'c1', arm: 'A', parentEmail: 'p@w.com', schoolId: 's1', branchId: 'b1' },
     { id: 'st3', name: 'Catherine Grace', email: 'c@g.com', role: 'STUDENT' as any, studentId: 'ADM-003', classId: 'c1', arm: 'A', parentEmail: 'p@g.com', schoolId: 's1', branchId: 'b1' },
     { id: 'st4', name: 'David Beckham', email: 'd@b.com', role: 'STUDENT' as any, studentId: 'ADM-004', classId: 'c1', arm: 'A', parentEmail: 'p@b.com', schoolId: 's1', branchId: 'b1' },
-  ].filter(s => 
-    s.schoolId === user.schoolId && 
-    s.branchId === user.branchId && 
+  ].filter(s =>
+    s.schoolId === user.schoolId &&
+    s.branchId === user.branchId &&
     s.classId === selectedClass
   );
 
@@ -73,7 +78,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, initialTab })
       const updated = { ...current, [field]: numValue };
       const total = calculateTotal(updated);
       const gradeInfo = getGradeInfo(total);
-      
+
       return {
         ...prev,
         [studentId]: {
@@ -213,12 +218,19 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, initialTab })
           <p className="text-slate-500 font-medium">Branch: {user.branchId} | Session: 2023/2024</p>
         </div>
         <div className="flex gap-2">
-          <button 
+          {isForceSync && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100">
+              <TrendingUp size={14} />
+              <span className="text-[10px] font-black uppercase tracking-widest">Global Force-Sync Active</span>
+            </div>
+          )}
+          <button
             onClick={handleSave}
-            className="flex items-center gap-2 px-8 py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 text-xs uppercase tracking-widest"
+            disabled={isLocked}
+            className={`flex items-center gap-2 px-8 py-4 ${isLocked ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-100'} font-black rounded-2xl transition-all text-xs uppercase tracking-widest`}
           >
             <Save size={18} />
-            Sync Results
+            {isLocked ? 'Sync Disabled by HQ' : 'Sync Results'}
           </button>
         </div>
       </div>
@@ -226,8 +238,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, initialTab })
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
         <div>
           <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Select Class</label>
-          <select 
-            value={selectedClass} 
+          <select
+            value={selectedClass}
             onChange={e => setSelectedClass(e.target.value)}
             className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
           >
@@ -236,8 +248,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, initialTab })
         </div>
         <div>
           <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Select Subject</label>
-          <select 
-            value={selectedSubject} 
+          <select
+            value={selectedSubject}
             onChange={e => setSelectedSubject(e.target.value)}
             className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
           >
@@ -270,8 +282,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, initialTab })
                       <div className="text-[10px] text-slate-400 font-bold uppercase">{student.studentId}</div>
                     </td>
                     <td className="px-4 py-5 text-center">
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         max="10"
                         className="w-14 p-2 bg-slate-100 border-none rounded-lg text-center font-bold text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                         value={s.test1 ?? 0}
@@ -279,8 +291,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, initialTab })
                       />
                     </td>
                     <td className="px-4 py-5 text-center">
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         max="10"
                         className="w-14 p-2 bg-slate-100 border-none rounded-lg text-center font-bold text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                         value={s.test2 ?? 0}
@@ -288,8 +300,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, initialTab })
                       />
                     </td>
                     <td className="px-4 py-5 text-center">
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         max="20"
                         className="w-14 p-2 bg-slate-100 border-none rounded-lg text-center font-bold text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                         value={s.assignment ?? 0}
@@ -297,8 +309,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, initialTab })
                       />
                     </td>
                     <td className="px-4 py-5 text-center">
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         max="60"
                         className="w-16 p-2 bg-slate-100 border-none rounded-lg text-center font-bold text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                         value={s.exam ?? 0}
@@ -309,9 +321,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, initialTab })
                       {calculateTotal(s)}
                     </td>
                     <td className="px-8 py-5 text-center">
-                      <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase shadow-sm ${
-                        calculateTotal(s) >= 40 ? 'bg-indigo-50 text-indigo-600' : 'bg-red-50 text-red-600'
-                      }`}>
+                      <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase shadow-sm ${calculateTotal(s) >= 40 ? 'bg-indigo-50 text-indigo-600' : 'bg-red-50 text-red-600'
+                        }`}>
                         {getGradeInfo(calculateTotal(s)).grade}
                       </span>
                     </td>

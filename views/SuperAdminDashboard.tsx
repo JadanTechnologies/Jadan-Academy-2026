@@ -46,10 +46,28 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
     else if (['branches', 'command', 'finance', 'settings'].includes(defaultTab)) setActiveTab(defaultTab as any);
   }, [defaultTab]);
 
+  const [transfers, setTransfers] = useState([
+    { item: '50 Dual Desks', from: 'Downtown', to: 'East Hill', status: 'In Transit', id: 'TX-9901' },
+    { item: '12 Smart Boards', from: 'Westside', to: 'Downtown', status: 'Approved', id: 'TX-9902' },
+    { item: '3 School Buses', from: 'East Hill', to: 'Westside', status: 'Pending', id: 'TX-9903' }
+  ]);
+
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const handleCreateTransfer = () => {
+    const newItem = {
+      item: 'Interactive Projector',
+      from: 'Downtown',
+      to: 'Westside',
+      status: 'Pending',
+      id: `TX-${Math.floor(Math.random() * 9000) + 1000}`
+    };
+    setTransfers([newItem, ...transfers]);
+    triggerToast(`Transfer order ${newItem.id} initialized.`);
   };
 
   const branchData = [
@@ -77,7 +95,10 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
                   <div className="text-[10px] text-slate-400 font-bold uppercase">{b.id} Node</div>
                 </div>
                 <button
-                  onClick={() => triggerToast(`Ghosting initialized for ${b.name}...`)}
+                  onClick={() => {
+                    triggerToast(`Ghosting initialized for ${b.name}...`);
+                    enterGhostMode(b.id);
+                  }}
                   className="px-4 py-2 bg-indigo-600 text-white font-black text-[10px] uppercase rounded-xl hover:bg-slate-900 transition-all flex items-center gap-2"
                 >
                   <Eye size={14} /> Enter Ghost Mode
@@ -95,17 +116,19 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
 
           <div className="space-y-4">
             {[
-              { l: 'Lock Global Finances', d: 'Freeze all branch transactions', v: false },
-              { l: 'Force Sync Results', d: 'Bypass teacher verification delays', v: true },
-              { l: 'Emergency Lockdown', d: 'Disable all login portals instantly', v: false },
-              { l: 'Auto-Backup Network', d: 'Perform hourly sharded backups', v: true }
+              { l: 'Lock Global Finances', d: 'Freeze all branch transactions', v: systemState.globalFinancesLocked, fn: setGlobalFinancesLocked },
+              { l: 'Force Sync Results', d: 'Bypass teacher verification delays', v: systemState.forceGradeSync, fn: setForceGradeSync },
+              { l: 'Emergency Lockdown', d: 'Disable all login portals instantly', v: systemState.emergencyLockdown, fn: setEmergencyLockdown },
+              { l: 'Auto-Backup Network', d: 'Perform hourly sharded backups', v: systemState.autoBackupEnabled, fn: setAutoBackupEnabled }
             ].map((s, i) => (
               <div key={i} className="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between">
                 <div>
                   <div className="text-[10px] font-black uppercase mb-1">{s.l}</div>
                   <p className="text-[8px] text-slate-500 leading-tight">{s.d}</p>
                 </div>
-                <div className={`w-8 h-4 rounded-full relative cursor-pointer ${s.v ? 'bg-indigo-500' : 'bg-slate-700'}`}>
+                <div
+                  onClick={() => s.fn(!s.v)}
+                  className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors ${s.v ? 'bg-indigo-500' : 'bg-slate-700'}`}>
                   <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${s.v ? 'right-0.5' : 'left-0.5'}`}></div>
                 </div>
               </div>
@@ -121,18 +144,17 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
             <h2 className="text-2xl font-black text-slate-900 uppercase">Cross-Branch Asset Orchestrator</h2>
             <p className="text-sm text-slate-500 italic">Relocate resources between campuses with automated inventory sharding.</p>
           </div>
-          <button className="px-6 py-3 bg-slate-900 text-white font-black text-[10px] uppercase rounded-xl flex items-center gap-2">
+          <button
+            onClick={handleCreateTransfer}
+            className="px-6 py-3 bg-slate-900 text-white font-black text-[10px] uppercase rounded-xl flex items-center gap-2 hover:bg-indigo-600 transition-all shadow-lg"
+          >
             <Plus size={16} /> Create Transfer Order
           </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-            { item: '50 Dual Desks', from: 'Downtown', to: 'East Hill', status: 'In Transit', id: 'TX-9901' },
-            { item: '12 Smart Boards', from: 'Westside', to: 'Downtown', status: 'Approved', id: 'TX-9902' },
-            { item: '3 School Buses', from: 'East Hill', to: 'Westside', status: 'Pending', id: 'TX-9903' }
-          ].map((t, i) => (
-            <div key={i} className="p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:border-indigo-200 transition-all">
+          {transfers.map((t, i) => (
+            <div key={t.id} className="p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:border-indigo-200 transition-all cursor-pointer">
               <div className="flex justify-between items-start mb-4">
                 <div className="font-black text-slate-900 uppercase text-xs">{t.item}</div>
                 <span className="text-[8px] font-black uppercase text-indigo-500 font-mono tracking-widest">{t.id}</span>

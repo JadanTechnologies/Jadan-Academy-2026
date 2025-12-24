@@ -8,6 +8,7 @@ import SuperAdminDashboard from './views/SuperAdminDashboard';
 import SchoolAdminDashboard from './views/SchoolAdminDashboard';
 import TeacherDashboard from './views/TeacherDashboard';
 import StudentParentDashboard from './views/StudentParentDashboard';
+import StaffDashboard from './views/StaffDashboard';
 import LoginPage from './views/LoginPage';
 import { SystemProvider, useSystem } from './SystemContext';
 import { XCircle, Users } from 'lucide-react';
@@ -83,6 +84,10 @@ const AppContent: React.FC = () => {
       case UserRole.STUDENT:
       case UserRole.PARENT:
         return <StudentParentDashboard user={currentUser} defaultTab={activeTab} />;
+      case UserRole.BURSAR:
+      case UserRole.LIBRARIAN:
+      case UserRole.RECEPTIONIST:
+        return <StaffDashboard user={currentUser} />;
       default:
         return (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User, UserRole } from '../types';
-import { ShieldCheck, School, Users, GraduationCap, Building2 } from 'lucide-react';
+import { ShieldCheck, School, Users, GraduationCap, Building2, DollarSign, BookOpen } from 'lucide-react';
 
 interface LoginPageProps {
   onLogin: (user: User) => void;
@@ -12,8 +12,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const roles = [
     { label: 'HQ Admin', role: UserRole.SUPER_ADMIN, icon: ShieldCheck, color: 'bg-indigo-900', branch: null },
     { label: 'Branch Admin', role: UserRole.SCHOOL_ADMIN, icon: Building2, color: 'bg-indigo-600', branch: 'b1' },
-    { label: 'Teacher (Downtown)', role: UserRole.TEACHER, icon: Users, color: 'bg-teal-500', branch: 'b1' },
-    { label: 'Student (Downtown)', role: UserRole.STUDENT, icon: GraduationCap, color: 'bg-orange-500', branch: 'b1' },
+    { label: 'Bursar', role: UserRole.BURSAR, icon: DollarSign, color: 'bg-emerald-600', branch: 'b1' },
+    { label: 'Librarian', role: UserRole.LIBRARIAN, icon: BookOpen, color: 'bg-blue-600', branch: 'b1' },
+    { label: 'Receptionist', role: UserRole.RECEPTIONIST, icon: Users, color: 'bg-rose-600', branch: 'b1' },
+    { label: 'Teacher', role: UserRole.TEACHER, icon: Users, color: 'bg-teal-500', branch: 'b1' },
   ];
 
   const handleSimulatedLogin = (config: any) => {
@@ -60,7 +62,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </div>
             <h3 className="text-xl font-bold text-white mb-1 whitespace-nowrap">{item.label}</h3>
             <p className="text-slate-500 text-[10px] uppercase tracking-widest font-bold">Scope: {item.branch || 'HQ / All Branches'}</p>
-            
+
             {loading && (
               <div className="absolute inset-0 flex items-center justify-center bg-slate-900/40 rounded-2xl">
                 <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
