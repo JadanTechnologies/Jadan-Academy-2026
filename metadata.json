@@ -1,0 +1,5 @@
+{
+  "name": "EduCore Pro - Multi-Branch School Management System",
+  "description": "A production-grade school management system designed for educational organizations with multiple branches. Features advanced report sheet generation, automated grading, and role-based access for Admins, Teachers, Students, and Parents.",
+  "requestFramePermissions": []
+}
