@@ -26,10 +26,18 @@ interface SuperAdminDashboardProps {
   defaultTab?: string;
 }
 
-const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab }) => {
+import { useSystem } from '../SystemContext';
 
+const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab }) => {
+  const {
+    state: systemState,
+    enterGhostMode,
+    setGlobalFinancesLocked,
+    setForceGradeSync,
+    setEmergencyLockdown,
+    setAutoBackupEnabled
+  } = useSystem();
   const [activeTab, setActiveTab] = useState<'overview' | 'branches' | 'command' | 'finance' | 'settings'>('overview');
-  const [ghostingBranch, setGhostingBranch] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
