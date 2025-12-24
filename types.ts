@@ -1,10 +1,14 @@
 
+
 export enum UserRole {
   SUPER_ADMIN = 'SUPER_ADMIN',
   SCHOOL_ADMIN = 'SCHOOL_ADMIN',
   TEACHER = 'TEACHER',
   STUDENT = 'STUDENT',
-  PARENT = 'PARENT'
+  PARENT = 'PARENT',
+  BURSAR = 'BURSAR',
+  LIBRARIAN = 'LIBRARIAN',
+  RECEPTIONIST = 'RECEPTIONIST'
 }
 
 export interface User {
@@ -74,7 +78,7 @@ export interface ResultEntry {
 export interface InventoryItem {
   id: string;
   name: string;
-  category: 'Furniture' | 'Electronics' | 'Stationery' | 'Lab';
+  category: 'Furniture' | 'Electronics' | 'Stationery' | 'Lab' | 'Sporting' | 'Other';
   quantity: number;
   status: 'Good' | 'Damaged' | 'Needs Replacement';
   branchId: string;
@@ -84,6 +88,7 @@ export interface BusRoute {
   id: string;
   routeName: string;
   driverName: string;
+  driverPhone?: string;
   capacity: number;
   occupied: number;
   branchId: string;
@@ -140,3 +145,122 @@ export interface PaymentRecord {
   receivedBy: string;
   branchId: string;
 }
+
+// --- NEW INTERFACES FOR 50 FEATURES ---
+
+export interface Attendance {
+  id: string;
+  userId: string;
+  date: string;
+  status: 'Present' | 'Absent' | 'Late';
+  remarks?: string;
+  branchId: string;
+}
+
+export interface TimetablePeriod {
+  id: string;
+  day: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday';
+  startTime: string;
+  endTime: string;
+  subjectId: string;
+  classId: string;
+  teacherId: string;
+  branchId: string;
+}
+
+export interface DisciplineRecord {
+  id: string;
+  studentId: string;
+  category: 'Minor' | 'Moderate' | 'Severe';
+  offense: string;
+  actionTaken: string;
+  date: string;
+  reportedBy: string;
+  branchId: string;
+}
+
+export interface StaffRecord {
+  id: string;
+  name: string;
+  role: string;
+  email: string;
+  phone: string;
+  qualification: string;
+  basicSalary: number;
+  dateJoined: string;
+  branchId: string;
+}
+
+export interface PayrollRecord {
+  id: string;
+  staffId: string;
+  month: string;
+  year: string;
+  status: 'Paid' | 'Pending';
+  amount: number;
+  deductions: number;
+  allowances: number;
+  branchId: string;
+}
+
+export interface ExpenseRecord {
+  id: string;
+  category: 'Maintenance' | 'Utilities' | 'Supplies' | 'Marketing' | 'Other';
+  description: string;
+  amount: number;
+  date: string;
+  branchId: string;
+}
+
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  targetAudience: 'All' | 'Teachers' | 'Parents' | 'Students';
+  date: string;
+  authorId: string;
+  schoolId: string;
+}
+
+export interface LessonPlan {
+  id: string;
+  teacherId: string;
+  subjectId: string;
+  classId: string;
+  weekNumber: number;
+  topic: string;
+  content: string;
+  isApproved: boolean;
+  branchId: string;
+}
+
+export interface OnlineAssignment {
+  id: string;
+  title: string;
+  description: string;
+  subjectId: string;
+  classId: string;
+  dueDate: string;
+  points: number;
+  branchId: string;
+}
+
+export interface HostelRoom {
+  id: string;
+  hostelName: string;
+  roomNumber: string;
+  capacity: number;
+  occupied: number;
+  branchId: string;
+}
+
+export interface VisitorLog {
+  id: string;
+  name: string;
+  purpose: string;
+  timeIn: string;
+  timeOut?: string;
+  whomToSee: string;
+  branchId: string;
+}
+
