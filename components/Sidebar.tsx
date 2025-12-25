@@ -3,7 +3,10 @@ import React from 'react';
 import {
   LayoutDashboard, Building2, Users, BookOpen, Settings, LogOut, FileText,
   ClipboardCheck, CalendarDays, Layers, Truck, Box, Library, ShieldCheck,
-  ChevronLeft, ChevronRight, Menu
+  ChevronLeft, ChevronRight, Menu, DollarSign, UserPlus, ShoppingCart,
+  HeartPulse, ShieldAlert, TrendingUp, History, Fingerprint, Sparkles,
+  GraduationCap, Briefcase, Activity, Landmark, Gem, AlertTriangle,
+  Stamp, Network, BrainCircuit, Trophy, Award, Search, Database, Receipt, Calendar
 } from 'lucide-react';
 import { User, UserRole } from '../types';
 
@@ -25,31 +28,85 @@ const Sidebar: React.FC<SidebarProps> = ({ user, onLogout, schoolLogo, activeTab
       case UserRole.SUPER_ADMIN:
         return [
           ...common,
-          { icon: Building2, label: 'Organizations', id: 'branches' },
-          { icon: ShieldCheck, label: 'System Audit', id: 'finance' },
+          { icon: Building2, label: 'Branches', id: 'branches' },
+          { icon: GraduationCap, label: 'Students', id: 'students' },
+          { icon: Briefcase, label: 'Payroll', id: 'payroll' },
+          { icon: DollarSign, label: 'Global Finance', id: 'finance' },
+          { icon: Box, label: 'Inventory', id: 'inventory' },
+          { icon: ShieldCheck, label: 'Compliance', id: 'compliance' },
+          { icon: Activity, label: 'Analytics', id: 'analytics' },
+          { icon: Landmark, label: 'Governance', id: 'governance' },
+          { icon: Gem, label: 'Wealth Shards', id: 'wealth' },
+          { icon: AlertTriangle, label: 'Crisis Hub', id: 'crisis' },
+          { icon: Stamp, label: 'Brand Center', id: 'brand' },
+          { icon: Network, label: 'Integrations', id: 'integrations' },
           { icon: Settings, label: 'HQ Settings', id: 'settings' },
         ];
       case UserRole.SCHOOL_ADMIN:
         return [
           ...common,
-          { icon: ClipboardCheck, label: 'Verify Results', id: 'results' },
-          { icon: Box, label: 'Operations', id: 'ops' },
-          { icon: Users, label: 'Staff Directory', id: 'staff' },
+          { icon: Users, label: 'Staff Node', id: 'staff' },
           { icon: BookOpen, label: 'Academics', id: 'academics' },
-          { icon: Settings, label: 'Setup', id: 'setup' },
+          { icon: ClipboardCheck, label: 'Verify Results', id: 'results' },
+          { icon: Box, label: 'Campus Ops', id: 'ops' },
+          { icon: DollarSign, label: 'Treasury', id: 'finance' },
+          { icon: UserPlus, label: 'Admissions', id: 'admissions' },
+          { icon: ShoppingCart, label: 'Procurement', id: 'procurement' },
+          { icon: ShieldCheck, label: 'Security', id: 'security' },
+          { icon: ShieldAlert, label: 'Discipline', id: 'discipline' },
+          { icon: Truck, label: 'Fleet Nexus', id: 'fleet' },
+          { icon: Building2, label: 'Facilities', id: 'facilities' },
+          { icon: HeartPulse, label: 'Sickbay', id: 'health' },
+          { icon: Layers, label: 'Exam Center', id: 'exams' },
+          { icon: Settings, label: 'Campus Setup', id: 'setup' },
         ];
       case UserRole.TEACHER:
         return [
           ...common,
-          { icon: FileText, label: 'Result Entry', id: 'entry' },
           { icon: CalendarDays, label: 'Attendance', id: 'attendance' },
+          { icon: FileText, label: 'Result Entry', id: 'entry' },
+          { icon: BrainCircuit, label: 'Lesson Plan', id: 'planning' },
+          { icon: ShieldAlert, label: 'Behavior', id: 'behavior' },
+          { icon: History, label: 'Growth Dossier', id: 'dossier' },
+          { icon: Trophy, label: 'Rewards', id: 'rewards' },
+          { icon: ShoppingCart, label: 'Requisition', id: 'requisition' },
+          { icon: Award, label: 'Portfolio', id: 'portfolio' },
+          { icon: Layers, label: 'Exam Lab', id: 'exams' },
         ];
-      default:
+      case UserRole.STUDENT:
+      case UserRole.PARENT:
         return [
           ...common,
-          { icon: FileText, label: 'My Transcript', id: 'reports' },
-          { icon: CalendarDays, label: 'My Schedule', id: 'att' },
+          { icon: Layers, label: 'Exam Hall', id: 'exams' },
+          { icon: Fingerprint, label: 'Student ID', id: 'identity' },
+          { icon: Calendar, label: 'Study Planner', id: 'planner' },
+          { icon: TrendingUp, label: 'Results', id: 'performance' },
+          { icon: HeartPulse, label: 'Wellness', id: 'wellness' },
+          { icon: Trophy, label: 'Milestones', id: 'extra' },
+          { icon: Receipt, label: 'Wallet', iconColor: 'text-emerald-500', id: 'finance' },
+          { icon: History, label: 'Archives', id: 'history' },
         ];
+      case UserRole.BURSAR:
+        return [
+          ...common,
+          { icon: History, label: 'Cash Ledger', id: 'ops' },
+          { icon: Search, label: 'Intake Reports', id: 'reports' },
+          { icon: Database, label: 'Shards', id: 'shards' },
+        ];
+      case UserRole.LIBRARIAN:
+        return [
+          ...common,
+          { icon: History, label: 'Asset Activity', id: 'ops' },
+          { icon: Search, label: 'Catalog Search', id: 'reports' },
+        ];
+      case UserRole.RECEPTIONIST:
+        return [
+          ...common,
+          { icon: History, label: 'Visitor Logs', id: 'ops' },
+          { icon: Search, label: 'Check-in Reports', id: 'reports' },
+        ];
+      default:
+        return common;
     }
   };
 
@@ -83,8 +140,8 @@ const Sidebar: React.FC<SidebarProps> = ({ user, onLogout, schoolLogo, activeTab
             key={item.id}
             onClick={() => onTabChange?.(item.id)}
             className={`w-full flex items-center gap-3 rounded-xl transition-all group relative ${isCollapsed ? 'justify-center p-3' : 'px-4 py-3'} ${activeTab === item.id
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/20'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             title={isCollapsed ? item.label : ''}
           >

@@ -11,13 +11,10 @@ import {
 
 interface StudentParentDashboardProps {
   user: User;
-  defaultTab?: string;
+  activeTab?: string;
 }
 
-const StudentParentDashboard: React.FC<StudentParentDashboardProps> = ({ user, defaultTab }) => {
-  const [activeTab, setActiveTab] = useState<'dash' | 'finance' | 'performance' | 'history' | 'identity' | 'wellness' | 'planner' | 'extra' | 'exams'>(() => {
-    return (localStorage.getItem('student_active_tab') as any) || (defaultTab as any) || 'dash';
-  });
+const StudentParentDashboard: React.FC<StudentParentDashboardProps> = ({ user, activeTab = 'dash' }) => {
   const [viewingReport, setViewingReport] = useState(false);
   const [takingExam, setTakingExam] = useState<string | null>(null);
   const [examTimer, setExamTimer] = useState(3600); // 1 hour in seconds
@@ -66,9 +63,6 @@ const StudentParentDashboard: React.FC<StudentParentDashboardProps> = ({ user, d
     ];
   });
 
-  useEffect(() => {
-    localStorage.setItem('student_active_tab', activeTab);
-  }, [activeTab]);
 
   useEffect(() => {
     localStorage.setItem(`results_${user.id}`, JSON.stringify(results));
@@ -697,27 +691,6 @@ const StudentParentDashboard: React.FC<StudentParentDashboardProps> = ({ user, d
         </div>
       </div>
 
-      <div className="flex gap-1 bg-slate-200/50 p-1.5 rounded-[1.5rem] w-full overflow-x-auto no-scrollbar">
-        {[
-          { id: 'dash', label: 'Dashboard', icon: Layout },
-          { id: 'exams', label: 'Exam Hall', icon: Layers },
-          { id: 'identity', label: 'My ID', icon: Fingerprint },
-          { id: 'planner', label: 'Study Planner', icon: Calendar },
-          { id: 'performance', label: 'Results', icon: TrendingUp },
-          { id: 'wellness', label: 'Wellness', icon: HeartPulse },
-          { id: 'extra', label: 'Milestones', icon: Trophy },
-          { id: 'finance', label: 'Wallet', icon: Receipt },
-          { id: 'history', label: 'Archives', icon: History },
-        ].map(tab => (
-          <button
-            key={tab.id} onClick={() => setActiveTab(tab.id as any)}
-            className={`px-8 py-3 rounded-[1.2rem] font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === tab.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-          >
-            <tab.icon size={16} />
-            {tab.label}
-          </button>
-        ))}
-      </div>
 
       <div className="min-h-[400px]">
         {activeTab === 'dash' && renderOverview()}

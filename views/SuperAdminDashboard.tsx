@@ -12,12 +12,12 @@ import {
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie } from 'recharts';
 
 interface SuperAdminDashboardProps {
-  defaultTab?: string;
+  activeTab?: string;
 }
 
 import { useSystem } from '../SystemContext';
 
-const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab }) => {
+const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ activeTab = 'dash' }) => {
   const {
     state: systemState,
     setEmergencyLockdown,
@@ -25,22 +25,11 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
     setForceGradeSync,
     setAutoBackupEnabled
   } = useSystem();
-  const [activeTab, setActiveTab] = useState<'overview' | 'branches' | 'students' | 'payroll' | 'finance' | 'inventory' | 'compliance' | 'analytics' | 'governance' | 'wealth' | 'crisis' | 'brand' | 'Integrations' | 'settings' | 'integrations'>(() => {
-    return (localStorage.getItem('super_admin_tab') as any) || 'overview';
-  });
+
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [showSchoolModal, setShowSchoolModal] = useState(false);
-
-  useEffect(() => {
-    if (defaultTab === 'dash' || !defaultTab) setActiveTab('overview');
-    else if (['branches', 'students', 'payroll', 'finance', 'inventory', 'compliance', 'analytics', 'governance', 'wealth', 'crisis', 'brand', 'integrations', 'settings'].includes(defaultTab)) setActiveTab(defaultTab as any);
-  }, [defaultTab]);
-
-  useEffect(() => {
-    localStorage.setItem('super_admin_tab', activeTab);
-  }, [activeTab]);
 
   const [transfers, setTransfers] = useState(() => {
     const saved = localStorage.getItem('super_admin_transfers');
@@ -959,8 +948,8 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
     <div className="space-y-8 max-w-7xl mx-auto pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase tracking-widest leading-none">Global Infrastructure</h1>
-          <p className="text-slate-500 font-medium italic">Managing {MOCK_SCHOOLS[0].name} Corporate Network</p>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase leading-none mb-2">Alpha Command</h1>
+          <p className="text-slate-500 font-medium italic">Global EdMS Infrastructure | Orchestrating {MOCK_SCHOOLS[0].branches.length} Branch Nodes</p>
         </div>
         <div className="flex items-center gap-4 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
           <div className="text-right px-4 border-r border-slate-100">
@@ -976,35 +965,8 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
         </div>
       </div>
 
-      <div className="flex gap-1 bg-slate-200/50 p-1.5 rounded-[1.5rem] w-full overflow-x-auto no-scrollbar">
-        {[
-          { id: 'overview', label: 'Dashboard', icon: Zap },
-          { id: 'branches', label: 'Branches', icon: Building2 },
-          { id: 'students', label: 'Students', icon: GraduationCap },
-          { id: 'payroll', label: 'Payroll', icon: Briefcase },
-          { id: 'finance', label: 'Fees', icon: DollarSign },
-          { id: 'inventory', label: 'Logistics', icon: Package },
-          { id: 'compliance', label: 'Compliance', icon: Stamp },
-          { id: 'analytics', label: 'AI Insight', icon: BarChart3 },
-          { id: 'governance', label: 'Governance', icon: Gavel },
-          { id: 'wealth', label: 'Wealth', icon: Landmark },
-          { id: 'crisis', label: 'Crisis Hub', icon: LifeBuoy },
-          { id: 'brand', label: 'Brand', icon: Newspaper },
-          { id: 'integrations', label: 'API & Gateways', icon: Globe },
-          { id: 'settings', label: 'System', icon: ShieldAlert },
-        ].map(tab => (
-          <button
-            key={tab.id} onClick={() => setActiveTab(tab.id as any)}
-            className={`px-8 py-3 rounded-[1.2rem] font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === tab.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-          >
-            <tab.icon size={16} />
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="min-h-[500px]">
-        {activeTab === 'overview' && (
+      <div className="min-h-[600px]">
+        {(activeTab === 'dash' || activeTab === 'overview') && (
           <>
             {renderOverview()}
             {renderGlobalAudit()}

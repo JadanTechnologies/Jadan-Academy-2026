@@ -15,29 +15,18 @@ import { useSystem } from '../SystemContext';
 interface SchoolAdminDashboardProps {
   school: School;
   user: User;
-  defaultTab?: string;
+  activeTab?: string;
 }
 
-const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, user, defaultTab }) => {
+const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, user, activeTab = 'dash' }) => {
   const { state: systemState } = useSystem();
-  const [activeTab, setActiveTab] = useState<'dash' | 'staff' | 'results' | 'ops' | 'finance' | 'academics' | 'admissions' | 'procurement' | 'security' | 'discipline' | 'fleet' | 'facilities' | 'health' | 'finance_local' | 'exams'>(() => {
-    return (localStorage.getItem(`admin_tab_${user.id}`) as any) || (defaultTab as any) || 'dash';
-  });
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  // Lock logic
-  const isSystemLocked = systemState.emergencyLockdown;
+  // UI state for sub-modules
   const [financeSubTab, setFinanceSubTab] = useState<'track' | 'structure' | 'history'>('track');
   const [selectedReceipt, setSelectedReceipt] = useState<PaymentRecord | null>(null);
-
-  useEffect(() => {
-    if (defaultTab) setActiveTab(defaultTab as any);
-  }, [defaultTab]);
-
-  useEffect(() => {
-    localStorage.setItem(`admin_tab_${user.id}`, activeTab);
-  }, [activeTab, user.id]);
+  const isSystemLocked = systemState.emergencyLockdown;
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
@@ -1006,58 +995,6 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
           <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase tracking-widest leading-none">Branch Command</h1>
           <p className="text-slate-500 font-medium italic">{school.name} | Campus Node: {user.branchId}</p>
         </div>
-        <div className="flex items-center gap-3">
-          {isSystemLocked && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 rounded-xl border border-rose-100 animate-pulse">
-              <ShieldAlert size={16} />
-              <span className="text-[10px] font-black uppercase tracking-widest">HQ LOCKDOWN</span>
-            </div>
-          )}
-          <div className="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100">
-            <Building size={24} />
-          </div>
-        </div>
-      </div>
-
-      {isSystemLocked && (
-        <div className="bg-rose-600 p-8 rounded-[2.5rem] text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl shadow-rose-200 border border-rose-500 animate-in zoom-in-95 duration-500">
-          <div className="flex-1">
-            <h2 className="text-2xl font-black uppercase tracking-tighter mb-2 flex items-center gap-3"><ShieldAlert size={32} /> EMERGENCY HQ PROTOCOL ACTIVE</h2>
-            <p className="text-rose-100 text-sm font-medium italic">All school operations have been sharded into READ-ONLY mode by Central HQ. Access to financial and result modifications is temporarily disabled.</p>
-          </div>
-          <div className="flex gap-2">
-            <button className="px-6 py-3 bg-white text-rose-600 font-black text-[10px] uppercase rounded-xl shadow-lg">Contact HQ Security</button>
-          </div>
-        </div>
-      )}
-
-
-      <div className="flex gap-1 bg-slate-200/50 p-1.5 rounded-[1.5rem] w-fit overflow-x-auto no-scrollbar">
-        {[
-          { id: 'dash', label: 'Overview', icon: Layout },
-          { id: 'fleet', label: 'Fleet & Logistics', icon: Truck },
-          { id: 'facilities', label: 'Facilities', icon: Hammer },
-          { id: 'exams', label: 'Exams', icon: Layers },
-          { id: 'health', label: 'Sickbay', icon: Stethoscope },
-          { id: 'finance_local', label: 'Local Treasury', icon: Wallet },
-          { id: 'staff', label: 'Staff Hub', icon: Users },
-          { id: 'results', label: 'Results Approval', icon: ClipboardCheck },
-          { id: 'academics', label: 'Academics', icon: BookOpen },
-          { id: 'finance', label: 'School fees', icon: DollarSign },
-          { id: 'ops', label: 'Branch Logs', icon: Layers },
-          { id: 'admissions', label: 'Admissions', icon: UserPlus },
-          { id: 'procurement', label: 'Procurement', icon: ShoppingCart },
-          { id: 'security', label: 'Security', icon: ShieldCheck },
-          { id: 'discipline', label: 'Events & Discipline', icon: Zap },
-        ].map(tab => (
-          <button
-            key={tab.id} onClick={() => setActiveTab(tab.id as any)}
-            className={`px-8 py-3 rounded-[1.2rem] font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === tab.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-          >
-            <tab.icon size={16} />
-            {tab.label}
-          </button>
-        ))}
       </div>
 
       <div className="min-h-[500px]">

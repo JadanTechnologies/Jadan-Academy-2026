@@ -9,16 +9,10 @@ import { MOCK_PAYMENTS, MOCK_BOOKS, MOCK_INVENTORY } from '../constants';
 
 interface StaffDashboardProps {
     user: User;
+    activeTab?: string;
 }
 
-const StaffDashboard: React.FC<StaffDashboardProps> = ({ user }) => {
-    const [activeTab, setActiveTab] = useState(() => {
-        return (localStorage.getItem(`staff_tab_${user.id}`)) || 'overview';
-    });
-
-    useEffect(() => {
-        localStorage.setItem(`staff_tab_${user.id}`, activeTab);
-    }, [activeTab, user.id]);
+const StaffDashboard: React.FC<StaffDashboardProps> = ({ user, activeTab = 'dash' }) => {
 
     const renderBursar = () => (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -200,24 +194,9 @@ const StaffDashboard: React.FC<StaffDashboardProps> = ({ user }) => {
                 </div>
             </div>
 
-            <div className="flex gap-1 bg-slate-200/50 p-1.5 rounded-[1.5rem] w-fit overflow-x-auto no-scrollbar">
-                {[
-                    { id: 'overview', label: 'Command Overview', icon: Layout },
-                    { id: 'ops', label: 'Active Logs', icon: History },
-                    { id: 'reports', label: 'Intake Reports', icon: Search },
-                ].map(tab => (
-                    <button
-                        key={tab.id} onClick={() => setActiveTab(tab.id)}
-                        className={`px-8 py-3 rounded-[1.2rem] font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === tab.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                        <tab.icon size={16} />
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
 
             <div className="min-h-[500px]">
-                {activeTab === 'overview' && (
+                {(activeTab === 'dash' || activeTab === 'overview') && (
                     <>
                         {user.role === UserRole.BURSAR && renderBursar()}
                         {user.role === UserRole.LIBRARIAN && renderLibrarian()}

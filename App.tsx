@@ -16,9 +16,15 @@ import { XCircle, Users } from 'lucide-react';
 const AppContent: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [activeSchool, setActiveSchool] = useState<School | null>(null);
-  const [activeTab, setActiveTab] = useState<string>('dash');
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    return localStorage.getItem('global_active_tab') || 'dash';
+  });
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { state: systemState, exitGhostMode } = useSystem();
+
+  useEffect(() => {
+    localStorage.setItem('global_active_tab', activeTab);
+  }, [activeTab]);
 
   useEffect(() => {
     if (currentUser?.schoolId) {
@@ -27,7 +33,6 @@ const AppContent: React.FC = () => {
     } else {
       setActiveSchool(null);
     }
-    setActiveTab('dash');
   }, [currentUser]);
 
   const handleLogin = (user: User) => {
@@ -77,18 +82,18 @@ const AppContent: React.FC = () => {
 
     switch (currentUser.role) {
       case UserRole.SUPER_ADMIN:
-        return <SuperAdminDashboard defaultTab={activeTab} />;
+        return <SuperAdminDashboard activeTab={activeTab} />;
       case UserRole.SCHOOL_ADMIN:
-        return <SchoolAdminDashboard school={activeSchool!} user={currentUser} defaultTab={activeTab} />;
+        return <SchoolAdminDashboard school={activeSchool!} user={currentUser} activeTab={activeTab} />;
       case UserRole.TEACHER:
-        return <TeacherDashboard user={currentUser} initialTab={activeTab} />;
+        return <TeacherDashboard user={currentUser} activeTab={activeTab} />;
       case UserRole.STUDENT:
       case UserRole.PARENT:
-        return <StudentParentDashboard user={currentUser} defaultTab={activeTab} />;
+        return <StudentParentDashboard user={currentUser} activeTab={activeTab} />;
       case UserRole.BURSAR:
       case UserRole.LIBRARIAN:
       case UserRole.RECEPTIONIST:
-        return <StaffDashboard user={currentUser} />;
+        return <StaffDashboard user={currentUser} activeTab={activeTab} />;
       default:
         return (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">

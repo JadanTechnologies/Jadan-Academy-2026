@@ -32,20 +32,18 @@ import {
 
 interface TeacherDashboardProps {
   user: User;
-  initialTab?: string;
+  activeTab?: string;
 }
 
 import { useSystem } from '../SystemContext';
 
-const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, initialTab }) => {
+const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, activeTab = 'dash' }) => {
   const { state: systemState } = useSystem();
-  const [activeTab, setActiveTab] = useState<'dash' | 'attendance' | 'entry' | 'planning' | 'behavior' | 'dossier' | 'rewards' | 'requisition' | 'portfolio' | 'exams'>(() => {
-    return (localStorage.getItem(`teacher_tab_${user.id}`) as any) || (initialTab as any) || 'dash';
-  });
   const [showSaveToast, setShowSaveToast] = useState(false);
 
   const isLocked = systemState.emergencyLockdown;
   const isForceSync = systemState.forceGradeSync;
+
   // Strict Multi-Branch Filtering
   const filteredClasses = MOCK_CLASSES.filter(c => c.schoolId === user.schoolId && c.branchId === user.branchId);
   const filteredSubjects = MOCK_SUBJECTS.filter(s => s.schoolId === user.schoolId);
@@ -58,16 +56,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, initialTab })
   });
 
   useEffect(() => {
-    localStorage.setItem(`teacher_tab_${user.id}`, activeTab);
-  }, [activeTab, user.id]);
-
-  useEffect(() => {
     localStorage.setItem(`scores_${user.branchId}`, JSON.stringify(scores));
   }, [scores, user.branchId]);
-
-  useEffect(() => {
-    if (initialTab) setActiveTab(initialTab);
-  }, [initialTab]);
 
   // Mock students strictly scoped by branch and class
   const students: Student[] = [
@@ -743,35 +733,6 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, initialTab })
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
-      <div className="flex gap-1 bg-slate-200/50 p-1.5 rounded-[1.5rem] w-full overflow-x-auto no-scrollbar">
-        {[
-          { id: 'dash', label: 'Dashboard', icon: Layout },
-          { id: 'attendance', label: 'Attendance', icon: History },
-          { id: 'entry', label: 'Gradebook', icon: FileSpreadsheet },
-          { id: 'dossier', label: 'Dossier', icon: Contact },
-          { id: 'planning', label: 'AI Planning', icon: Sparkles },
-          { id: 'behavior', label: 'Behavior', icon: Activity },
-          { id: 'rewards', label: 'Economics', icon: Star },
-          { id: 'exams', label: 'Exam Lab', icon: Layers },
-          { id: 'requisition', label: 'Orders', icon: ShoppingCart },
-          { id: 'portfolio', label: 'My Growth', icon: Briefcase },
-        ].map(tab => (
-          <button
-            key={tab.id} onClick={() => setActiveTab(tab.id as any)}
-            className={`px-8 py-3 rounded-[1.2rem] font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === tab.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-          >
-            <tab.icon size={16} />
-            {tab.label}
-          </button>
-        ))}
-      </div>
-      {activeTab === 'dash' && renderOverview()}
-      {activeTab === 'attendance' && renderAttendance()}
-      {activeTab === 'entry' && renderResultInput()}
-      {activeTab === 'planning' && renderPlanning()}
-      {activeTab === 'behavior' && renderBehavior()}
-      {activeTab === 'dossier' && renderDossier()}
-      {activeTab === 'exams' && renderExams()}
       {activeTab === 'rewards' && renderRewards()}
       {activeTab === 'requisition' && renderRequisition()}
       {activeTab === 'portfolio' && renderPortfolio()}
