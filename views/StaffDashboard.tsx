@@ -1,18 +1,18 @@
-
 import React, { useState, useEffect } from 'react';
 import { User, UserRole, PaymentRecord, InventoryItem, LibraryBook, VisitorLog } from '../types';
 import {
     DollarSign, BookOpen, Users, Layout, Search, Plus,
-    Printer, TrendingUp, History, UserCheck, ShieldCheck, Clock
+    Printer, TrendingUp, History, UserCheck, ShieldCheck, Clock, Sparkles, Database, Layers, FileCheck, ArrowUpRight, Wallet
 } from 'lucide-react';
 import { MOCK_PAYMENTS, MOCK_BOOKS, MOCK_INVENTORY } from '../constants';
 
 interface StaffDashboardProps {
     user: User;
     activeTab?: string;
+    onTabChange?: (tabId: string) => void;
 }
 
-const StaffDashboard: React.FC<StaffDashboardProps> = ({ user, activeTab = 'dash' }) => {
+const StaffDashboard: React.FC<StaffDashboardProps> = ({ user, activeTab = 'dash', onTabChange }) => {
 
     const renderBursar = () => (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -203,7 +203,7 @@ const StaffDashboard: React.FC<StaffDashboardProps> = ({ user, activeTab = 'dash
                         {user.role === UserRole.RECEPTIONIST && renderReceptionist()}
                     </>
                 )}
-                {(activeTab === 'ops' || activeTab === 'reports') && (
+                {(activeTab === 'ops' || activeTab === 'reports' || activeTab === 'shards') && (
                     <div className="bg-white p-20 rounded-[2.5rem] border border-slate-100 text-center shadow-sm">
                         <div className="w-20 h-20 bg-slate-50 text-slate-300 rounded-3xl flex items-center justify-center mx-auto mb-6">
                             <Clock size={40} />

@@ -12,9 +12,10 @@ import {
 interface StudentParentDashboardProps {
   user: User;
   activeTab?: string;
+  onTabChange?: (tabId: string) => void;
 }
 
-const StudentParentDashboard: React.FC<StudentParentDashboardProps> = ({ user, activeTab = 'dash' }) => {
+const StudentParentDashboard: React.FC<StudentParentDashboardProps> = ({ user, activeTab = 'dash', onTabChange }) => {
   const [viewingReport, setViewingReport] = useState(false);
   const [takingExam, setTakingExam] = useState<string | null>(null);
   const [examTimer, setExamTimer] = useState(3600); // 1 hour in seconds
@@ -114,16 +115,18 @@ const StudentParentDashboard: React.FC<StudentParentDashboardProps> = ({ user, a
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: 'Overall Average', value: '82.4%', icon: GraduationCap, color: 'indigo' },
-          { label: 'Next Deadline', value: 'Literature', icon: Clock, color: 'amber' },
-          { label: 'Achievements', value: '14 Shards', icon: Trophy, color: 'emerald' },
-          { label: 'Canteen Balance', value: '₦420.00', icon: DollarSign, color: 'rose' }
+          { label: 'Academic Pulse', value: '88%', icon: Activity, color: 'text-indigo-600', bg: 'bg-indigo-50', tab: 'performance' },
+          { label: 'Spirit Points', value: '450', icon: Trophy, color: 'text-amber-600', bg: 'bg-amber-50', tab: 'extra' },
+          { label: 'Global Ranking', value: '#12', icon: Star, color: 'text-emerald-600', bg: 'bg-emerald-50', tab: 'performance' },
+          { label: 'Wallet Shard', value: '₦4,200', icon: Wallet, color: 'text-rose-600', bg: 'bg-rose-50', tab: 'finance' },
         ].map((stat, i) => (
-          <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-indigo-200 transition-all">
-            <div className={`w-12 h-12 bg-${stat.color}-50 text-${stat.color}-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}><stat.icon size={24} /></div>
+          <div key={i} onClick={() => stat.tab && onTabChange?.(stat.tab)} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 hover:scale-[1.02] transition-transform cursor-pointer group">
+            <div className={`w-14 h-14 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform`}>
+              <stat.icon size={28} />
+            </div>
             <div>
-              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1">{stat.label}</p>
-              <p className="text-lg font-black text-slate-900">{stat.value}</p>
+              <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1">{stat.label}</div>
+              <div className="text-xl font-black text-slate-900 tracking-tight">{stat.value}</div>
             </div>
           </div>
         ))}

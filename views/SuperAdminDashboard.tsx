@@ -13,11 +13,12 @@ import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveCo
 
 interface SuperAdminDashboardProps {
   activeTab?: string;
+  onTabChange?: (tabId: string) => void;
 }
 
 import { useSystem } from '../SystemContext';
 
-const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ activeTab = 'dash' }) => {
+const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ activeTab = 'dash', onTabChange }) => {
   const {
     state: systemState,
     setEmergencyLockdown,
@@ -870,12 +871,12 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ activeTab = '
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: 'Network Nodes', value: `${MOCK_SCHOOLS.reduce((acc, s) => acc + (s.branches?.length || 0), 0)} Clusters`, icon: Server, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-          { label: 'Global Enrollment', value: '1,280 Students', icon: GraduationCap, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: 'Cloud Uptime', value: '99.98%', icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50' },
-          { label: 'Consolidated Revenue', value: '₦310,000', icon: DollarSign, color: 'text-rose-600', bg: 'bg-rose-50' },
+          { label: 'Network Nodes', value: `${MOCK_SCHOOLS.reduce((acc, s) => acc + (s.branches?.length || 0), 0)} Clusters`, icon: Server, color: 'text-indigo-600', bg: 'bg-indigo-50', tab: 'branches' },
+          { label: 'Global Enrollment', value: '1,280 Students', icon: GraduationCap, color: 'text-emerald-600', bg: 'bg-emerald-50', tab: 'students' },
+          { label: 'Cloud Uptime', value: '99.98%', icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50', tab: 'analytics' },
+          { label: 'Consolidated Revenue', value: '₦310,000', icon: DollarSign, color: 'text-rose-600', bg: 'bg-rose-50', tab: 'finance' },
         ].map((stat, i) => (
-          <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 hover:scale-[1.02] transition-transform cursor-pointer">
+          <div key={i} onClick={() => stat.tab && onTabChange?.(stat.tab)} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 hover:scale-[1.02] transition-transform cursor-pointer">
             <div className={`w-14 h-14 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center shadow-inner`}>
               <stat.icon size={28} />
             </div>

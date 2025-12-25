@@ -33,11 +33,12 @@ import {
 interface TeacherDashboardProps {
   user: User;
   activeTab?: string;
+  onTabChange?: (tabId: string) => void;
 }
 
 import { useSystem } from '../SystemContext';
 
-const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, activeTab = 'dash' }) => {
+const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, activeTab = 'dash', onTabChange }) => {
   const { state: systemState } = useSystem();
   const [showSaveToast, setShowSaveToast] = useState(false);
 
@@ -159,7 +160,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, activeTab = '
         </div>
         <div className="p-8 space-y-4">
           {filteredClasses.length > 0 ? filteredClasses.map((item, i) => (
-            <div key={i} className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-indigo-50/30 transition-all cursor-pointer group" onClick={() => setActiveTab('entry')}>
+            <div key={i} className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-indigo-50/30 transition-all cursor-pointer group" onClick={() => onTabChange?.('entry')}>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center border border-slate-200 text-indigo-600 group-hover:scale-110 transition-transform">
                   <BookOpen size={20} />
@@ -733,9 +734,16 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, activeTab = '
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
+      {(activeTab === 'dash' || activeTab === 'overview') && renderOverview()}
+      {activeTab === 'attendance' && renderAttendance()}
+      {activeTab === 'entry' && renderResultInput()}
+      {activeTab === 'planning' && renderPlanning()}
+      {activeTab === 'behavior' && renderBehavior()}
+      {activeTab === 'dossier' && renderDossier()}
       {activeTab === 'rewards' && renderRewards()}
       {activeTab === 'requisition' && renderRequisition()}
       {activeTab === 'portfolio' && renderPortfolio()}
+      {activeTab === 'exams' && renderExams()}
     </div>
   );
 };

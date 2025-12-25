@@ -37,6 +37,7 @@ const AppContent: React.FC = () => {
 
   const handleLogin = (user: User) => {
     setCurrentUser(user);
+    setActiveTab('dash'); // Reset to dash on login
   };
 
   const handleLogout = () => {
@@ -65,9 +66,12 @@ const AppContent: React.FC = () => {
               <XCircle size={14} /> Exit Terminal
             </button>
           </div>
-          <div className="pt-14 h-full">
-            <SchoolAdminDashboard school={activeSchool!} user={{ ...currentUser, branchId: targetBranchId!, role: UserRole.SCHOOL_ADMIN }} defaultTab="dash" />
-          </div>
+          <SchoolAdminDashboard
+            school={activeSchool!}
+            user={currentUser}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </div>
       );
     }
@@ -75,54 +79,57 @@ const AppContent: React.FC = () => {
     if (currentUser.role === UserRole.SCHOOL_ADMIN && !activeSchool) {
       return (
         <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-white rounded-3xl border border-slate-100">
+          <div className="w-20 h-20 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-6">
+            <Users size={40} />
+          </div>
           <h2 className="text-xl font-bold text-slate-900">School Data Missing</h2>
+          <p className="text-slate-500 mt-2">Please contact HQ to assign your account to a school.</p>
         </div>
       );
     }
 
     switch (currentUser.role) {
       case UserRole.SUPER_ADMIN:
-        return <SuperAdminDashboard activeTab={activeTab} />;
+        return <SuperAdminDashboard activeTab={activeTab} onTabChange={setActiveTab} />;
       case UserRole.SCHOOL_ADMIN:
-        return <SchoolAdminDashboard school={activeSchool!} user={currentUser} activeTab={activeTab} />;
+        return <SchoolAdminDashboard school={activeSchool!} user={currentUser} activeTab={activeTab} onTabChange={setActiveTab} />;
       case UserRole.TEACHER:
-        return <TeacherDashboard user={currentUser} activeTab={activeTab} />;
+        return <TeacherDashboard user={currentUser} activeTab={activeTab} onTabChange={setActiveTab} />;
       case UserRole.STUDENT:
       case UserRole.PARENT:
-        return <StudentParentDashboard user={currentUser} activeTab={activeTab} />;
+        return <StudentParentDashboard user={currentUser} activeTab={activeTab} onTabChange={setActiveTab} />;
       case UserRole.BURSAR:
       case UserRole.LIBRARIAN:
       case UserRole.RECEPTIONIST:
-        return <StaffDashboard user={currentUser} activeTab={activeTab} />;
+        return <StaffDashboard user={currentUser} activeTab={activeTab} onTabChange={setActiveTab} />;
       default:
         return (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
-            <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mb-6">
-              <Users size={40} />
-            </div>
-            <h2 className="text-2xl font-black text-slate-900 uppercase">{currentUser.role} DASHBOARD</h2>
-            <p className="text-slate-500 max-w-sm mt-2 italic font-medium">Functional interface for {currentUser.role} is currently being sharded into the network.</p>
+            <h2 className="text-xl font-bold text-slate-900">Unauthorized Access</h2>
+            <p className="text-slate-500 mt-2">Your role does not have access to any dashboard.</p>
           </div>
         );
     }
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50 overflow-hidden">
-      <div className={`no-print flex-shrink-0 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'w-20' : 'w-72'}`}>
-        <Sidebar
-          user={currentUser}
-          onLogout={handleLogout}
-          schoolLogo={activeSchool?.logo}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          isCollapsed={isSidebarCollapsed}
-          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        />
-      </div>
+    <div className="flex h-screen bg-slate-50">
+      <Sidebar
+        user={currentUser}
+        onLogout={handleLogout}
+        schoolLogo={activeSchool?.logo}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+      />
       <div className="flex-1 flex flex-col min-w-0">
-        <Header user={currentUser} schoolName={activeSchool?.name} />
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+        <Header
+          user={currentUser}
+          schoolName={activeSchool?.name}
+          activeTab={activeTab}
+        />
+        <main className="flex-1 overflow-y-auto p-8 bg-slate-50/50 custom-scrollbar">
           {renderDashboard()}
         </main>
       </div>

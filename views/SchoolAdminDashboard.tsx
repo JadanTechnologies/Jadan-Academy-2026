@@ -16,9 +16,10 @@ interface SchoolAdminDashboardProps {
   school: School;
   user: User;
   activeTab?: string;
+  onTabChange?: (tabId: string) => void;
 }
 
-const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, user, activeTab = 'dash' }) => {
+const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, user, activeTab = 'dash', onTabChange }) => {
   const { state: systemState } = useSystem();
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -1032,12 +1033,12 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
             {/* Stats Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { l: 'Total Revenue', v: '₦420,000', i: DollarSign, c: 'indigo' },
-                { l: 'Academic Health', v: '88% Shard', i: GraduationCap, c: 'emerald' },
-                { l: 'Asset Vitality', v: '92% Good', i: Hammer, i2: Box, c: 'amber' },
-                { l: 'Incident Logs', v: '2 Today', i: Siren, c: 'rose' },
+                { l: 'Total Revenue', v: '₦420,000', i: DollarSign, c: 'indigo', tab: 'finance' },
+                { l: 'Academic Health', v: '88% Shard', i: GraduationCap, c: 'emerald', tab: 'results' },
+                { l: 'Asset Vitality', v: '92% Good', i: Hammer, c: 'fleet', tab: 'fleet' },
+                { l: 'Incident Logs', v: '2 Today', i: Siren, c: 'rose', tab: 'security' },
               ].map((s, i) => (
-                <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-indigo-200 transition-all">
+                <div key={i} onClick={() => s.tab && onTabChange?.(s.tab)} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-indigo-200 transition-all cursor-pointer">
                   <div className={`w-12 h-12 bg-${s.c}-50 text-${s.c}-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}><s.i size={24} /></div>
                   <div>
                     <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1">{s.l}</div>
@@ -1208,6 +1209,7 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
         {activeTab === 'facilities' && renderFacilities()}
         {activeTab === 'health' && renderHealth()}
         {activeTab === 'finance_local' && renderLocalFinance()}
+        {activeTab === 'setup' && renderSecurity()}
       </div>
 
       {showToast && (
