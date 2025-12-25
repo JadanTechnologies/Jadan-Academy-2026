@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
-import { User, UserRole, PaymentRecord, InventoryItem, LibraryBook, VisitorLog } from './types';
+import { User, UserRole, PaymentRecord, InventoryItem, LibraryBook, VisitorLog } from '../types';
 import {
     DollarSign, BookOpen, Users, Layout, Search, Plus,
     Printer, TrendingUp, History, UserCheck, ShieldCheck, Clock
 } from 'lucide-react';
-import { MOCK_PAYMENTS, MOCK_BOOKS, MOCK_INVENTORY } from './constants';
+import { MOCK_PAYMENTS, MOCK_BOOKS, MOCK_INVENTORY } from '../constants';
 
 interface StaffDashboardProps {
     user: User;
