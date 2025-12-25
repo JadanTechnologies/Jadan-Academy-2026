@@ -11,6 +11,7 @@ import StudentParentDashboard from './views/StudentParentDashboard';
 import StaffDashboard from './views/StaffDashboard';
 import LoginPage from './views/LoginPage';
 import { SystemProvider, useSystem } from './SystemContext';
+import { InstitutionProvider, useInstitution } from './InstitutionContext';
 import { XCircle, Users } from 'lucide-react';
 
 const AppContent: React.FC = () => {
@@ -21,6 +22,7 @@ const AppContent: React.FC = () => {
   });
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { state: systemState, exitGhostMode } = useSystem();
+  const { schools } = useInstitution();
 
   useEffect(() => {
     localStorage.setItem('global_active_tab', activeTab);
@@ -28,16 +30,16 @@ const AppContent: React.FC = () => {
 
   useEffect(() => {
     if (currentUser?.schoolId) {
-      const school = MOCK_SCHOOLS.find(s => s.id === currentUser.schoolId);
+      const school = schools.find(s => s.id === currentUser.schoolId);
       setActiveSchool(school || null);
     } else {
       setActiveSchool(null);
     }
-  }, [currentUser]);
+  }, [currentUser, schools]);
 
   const handleLogin = (user: User) => {
     setCurrentUser(user);
-    setActiveTab('dash'); // Reset to dash on login
+    setActiveTab('dash');
   };
 
   const handleLogout = () => {
@@ -140,7 +142,9 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <SystemProvider>
-      <AppContent />
+      <InstitutionProvider>
+        <AppContent />
+      </InstitutionProvider>
     </SystemProvider>
   );
 };

@@ -7,10 +7,11 @@ import {
   UserPlus, CreditCard, UserCheck, Briefcase, Clock, Printer, BellRing, ReceiptText, ChevronDown, ShieldCheck,
   ShoppingCart, Fingerprint, FileText, HardDrive, Zap, History, ClipboardList,
   Radar, Stethoscope, Wallet, Fuel, Hammer, Trophy, Apple, Dna, Siren, Radio,
-  Monitor, Activity, Database, Wifi, Settings, FileCheck
+  Monitor, Activity, Database, Wifi, Settings, FileCheck, X
 } from 'lucide-react';
 import { MOCK_INVENTORY, MOCK_BUS_ROUTES, MOCK_BOOKS, MOCK_SUBJECTS, MOCK_CLASSES, MOCK_FEE_STRUCTURES, MOCK_PAYMENTS } from '../constants';
 import { useSystem } from '../SystemContext';
+import { useInstitution } from '../InstitutionContext';
 
 interface SchoolAdminDashboardProps {
   school: School;
@@ -21,8 +22,21 @@ interface SchoolAdminDashboardProps {
 
 const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, user, activeTab = 'dash', onTabChange }) => {
   const { state: systemState } = useSystem();
+  const { staff, students, addStaff, addStudent } = useInstitution();
+
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+
+  // Modals
+  const [showStaffModal, setShowStaffModal] = useState(false);
+  const [showAdmissionModal, setShowAdmissionModal] = useState(false);
+
+  // Form States
+  const [newStaffName, setNewStaffName] = useState('');
+  const [newStaffRole, setNewStaffRole] = useState('');
+  const [newStaffEmail, setNewStaffEmail] = useState('');
+  const [newStudentName, setNewStudentName] = useState('');
+  const [newStudentGrade, setNewStudentGrade] = useState('');
 
   // UI state for sub-modules
   const [financeSubTab, setFinanceSubTab] = useState<'track' | 'structure' | 'history'>('track');
@@ -50,15 +64,7 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
     return saved ? JSON.parse(saved) : MOCK_BOOKS.filter(b => b.branchId === user.branchId);
   });
 
-  const [localStudents, setLocalStudents] = useState<Student[]>(() => {
-    const saved = localStorage.getItem(`students_${user.branchId}`);
-    if (saved) return JSON.parse(saved);
-    return [
-      { id: 's1', name: 'Alice Thompson', studentId: 'STU-1001', classId: 'c1', arm: 'A', parentEmail: 'p.thompson@email.com', branchId: 'b1', feeStatus: 'Paid' as 'Paid', totalPaid: 1300, role: UserRole.STUDENT, email: 'a@t.com' },
-      { id: 's2', name: 'Bob Wilson', studentId: 'STU-1002', classId: 'c1', arm: 'A', parentEmail: 'b.wilson@email.com', branchId: 'b1', feeStatus: 'Partial' as 'Partial', totalPaid: 600, role: UserRole.STUDENT, email: 'b@w.com' },
-      { id: 's3', name: 'Charlie Dean', studentId: 'STU-1003', classId: 'c2', arm: 'B', parentEmail: 'c.dean@email.com', branchId: 'b1', feeStatus: 'Unpaid' as 'Unpaid', totalPaid: 0, role: UserRole.STUDENT, email: 'c@d.com' },
-    ].filter(s => s.branchId === user.branchId);
-  });
+  const branchStudents = students.filter(s => s.branchId === user.branchId);
 
   useEffect(() => {
     localStorage.setItem(`inventory_${user.branchId}`, JSON.stringify(localInventory));
@@ -72,9 +78,7 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
     localStorage.setItem(`books_${user.branchId}`, JSON.stringify(localBooks));
   }, [localBooks, user.branchId]);
 
-  useEffect(() => {
-    localStorage.setItem(`students_${user.branchId}`, JSON.stringify(localStudents));
-  }, [localStudents, user.branchId]);
+  // Students are now managed by InstitutionContext
 
   const branchInventory = localInventory;
   const branchTransport = localTransport;
@@ -82,7 +86,6 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
   const branchClasses = MOCK_CLASSES.filter(c => c.branchId === user.branchId);
   const branchFeeStructures = MOCK_FEE_STRUCTURES.filter(f => f.branchId === user.branchId);
   const branchPayments = MOCK_PAYMENTS.filter(p => p.branchId === user.branchId);
-  const branchStudents = localStudents;
 
   const getFeeTotalForClass = (classId: string) => {
     return branchFeeStructures.find(f => f.classId === classId)?.total || 0;
@@ -596,8 +599,8 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
           </h2>
           <p className="text-sm text-slate-500 italic">Electronic candidate processing and enrollment verification.</p>
         </div>
-        <button className="px-8 py-4 bg-indigo-600 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl hover:bg-slate-900 transition-all">
-          Review Entry Queue (14)
+        <button onClick={() => setShowAdmissionModal(true)} className="px-8 py-4 bg-indigo-600 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl hover:bg-slate-900 transition-all flex items-center gap-2">
+          <UserPlus size={16} /> New Admission Offer
         </button>
       </div>
 
@@ -1105,33 +1108,31 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
           <div className="space-y-6 animate-in fade-in duration-500">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-black text-slate-900 uppercase">Staff Directory Hub</h2>
-              <button className="px-6 py-3 bg-indigo-600 text-white font-black text-[10px] uppercase rounded-xl flex items-center gap-2">
+              <button onClick={() => setShowStaffModal(true)} className="px-6 py-3 bg-indigo-600 text-white font-black text-[10px] uppercase rounded-xl flex items-center gap-2">
                 <UserPlus size={16} /> Add New Faculty
               </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                { n: 'Dr. Sarah Collins', r: 'Vice Principal (Academic)', e: 's.collins@school.com', s: 'On Campus', p: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&h=150&auto=format&fit=crop' },
-                { n: 'Mark Thompson', r: 'Head of Sciences', e: 'm.thompson@school.com', s: 'In Class', p: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&h=150&auto=format&fit=crop' },
-                { n: 'Elizabeth Reed', r: 'Chief Bursar', e: 'e.reed@school.com', s: 'In Office', p: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=150&h=150&auto=format&fit=crop' }
-              ].map((staff, i) => (
+              {staff.filter(s => s.branchId === user.branchId).map((s, i) => (
                 <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 hover:shadow-xl hover:shadow-slate-100 transition-all group">
                   <div className="flex items-center gap-4 mb-6">
-                    <img src={staff.p} className="w-16 h-16 rounded-2xl object-cover shadow-lg group-hover:scale-105 transition-transform" alt={staff.n} />
+                    <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-2xl shadow-lg">
+                      {s.name.charAt(0)}
+                    </div>
                     <div>
-                      <h4 className="font-black text-slate-900 uppercase text-sm leading-tight">{staff.n}</h4>
-                      <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-tight">{staff.r}</p>
+                      <h4 className="font-black text-slate-900 uppercase text-sm leading-tight">{s.name}</h4>
+                      <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-tight">{s.role}</p>
                     </div>
                   </div>
                   <div className="space-y-3 border-t border-slate-50 pt-6">
                     <div className="flex justify-between text-[10px] font-black uppercase">
                       <span className="text-slate-400">Email</span>
-                      <span className="text-slate-900 tracking-tight">{staff.e}</span>
+                      <span className="text-slate-900 tracking-tight">{s.email}</span>
                     </div>
                     <div className="flex justify-between text-[10px] font-black uppercase">
                       <span className="text-slate-400">Activity Status</span>
-                      <span className="text-emerald-500">{staff.s}</span>
+                      <span className="text-emerald-500">Active</span>
                     </div>
                   </div>
                   <div className="flex gap-2 mt-8">
@@ -1218,7 +1219,47 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
           <span className="font-black text-sm uppercase tracking-widest">{toastMessage}</span>
         </div>
       )}
+
+      {showStaffModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-10 relative">
+            <button onClick={() => setShowStaffModal(false)} className="absolute top-8 right-8 text-slate-400 hover:text-slate-900"><X size={24} /></button>
+            <h3 className="text-2xl font-black uppercase tracking-tighter mb-8">Onboard Faculty</h3>
+            <form onSubmit={e => {
+              e.preventDefault();
+              addStaff({ name: newStaffName, role: newStaffRole, email: newStaffEmail, phone: '08000000000', qualification: 'B.Ed', basicSalary: 50000, dateJoined: new Date().toISOString().split('T')[0], branchId: user.branchId! });
+              setNewStaffName(''); setNewStaffRole(''); setNewStaffEmail(''); setShowStaffModal(false);
+              triggerToast(`Staff "${newStaffName}" onboarded.`);
+            }} className="space-y-6">
+              <div><label className="text-[10px] font-black uppercase text-slate-400 block mb-2">Staff Full Name</label><input autoFocus value={newStaffName} onChange={e => setNewStaffName(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 outline-none font-bold" placeholder="e.g. John Doe" /></div>
+              <div><label className="text-[10px] font-black uppercase text-slate-400 block mb-2">Primary Role</label><select value={newStaffRole} onChange={e => setNewStaffRole(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 outline-none font-bold"><option value="">Select Role...</option><option value="Teacher">Teacher</option><option value="Bursar">Bursar</option><option value="Librarian">Librarian</option><option value="Receptionist">Receptionist</option></select></div>
+              <div><label className="text-[10px] font-black uppercase text-slate-400 block mb-2">Official Email</label><input value={newStaffEmail} onChange={e => setNewStaffEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 outline-none font-bold" placeholder="j.doe@school.edu" /></div>
+              <button className="w-full py-4 bg-indigo-600 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl hover:bg-slate-900 transition-all">Initialize Shard</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showAdmissionModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-10 relative">
+            <button onClick={() => setShowAdmissionModal(false)} className="absolute top-8 right-8 text-slate-400 hover:text-slate-900"><X size={24} /></button>
+            <h3 className="text-2xl font-black uppercase tracking-tighter mb-8">Offer Admission</h3>
+            <form onSubmit={e => {
+              e.preventDefault();
+              addStudent({ name: newStudentName, studentId: `ADM-${Math.floor(Math.random() * 9000) + 1000}`, classId: 'c1', arm: 'A', parentEmail: 'parent@email.com', branchId: user.branchId!, role: UserRole.STUDENT, email: `${newStudentName.toLowerCase().replace(' ', '.')}@school.edu`, feeStatus: 'Unpaid' });
+              setNewStudentName(''); setShowAdmissionModal(false);
+              triggerToast(`Admission offer sent to ${newStudentName}.`);
+            }} className="space-y-6">
+              <div><label className="text-[10px] font-black uppercase text-slate-400 block mb-2">Student Full Name</label><input autoFocus value={newStudentName} onChange={e => setNewStudentName(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 outline-none font-bold" placeholder="e.g. Samuel Okafor" /></div>
+              <div><label className="text-[10px] font-black uppercase text-slate-400 block mb-2">Target Grade</label><select value={newStudentGrade} onChange={e => setNewStudentGrade(e.target.value)} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 outline-none font-bold"><option value="">Select Grade...</option><option value="Grade 7">Grade 7</option><option value="Grade 8">Grade 8</option><option value="Grade 9">Grade 9</option><option value="Grade 10">Grade 10</option></select></div>
+              <button className="w-full py-4 bg-indigo-600 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl hover:bg-slate-900 transition-all">Dispatch Offer</button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
+
   );
 };
 
