@@ -28,7 +28,8 @@ import {
   Edit,
   Filter,
   GraduationCap,
-  Briefcase
+  Briefcase,
+  History
 } from 'lucide-react';
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie } from 'recharts';
 
@@ -89,74 +90,6 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
     { id: 'b3', name: 'East Hill', students: 450, performance: 82, revenue: 105000, latency: '15ms', staff: 38 },
   ];
 
-  const renderHQCommand = () => (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Global Security Override */}
-        <div className="flex-1 bg-slate-900 p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden">
-          <ShieldAlert size={120} className="absolute -bottom-10 -right-10 opacity-10" />
-          <h2 className="text-xl font-black uppercase mb-4">Master Overrides</h2>
-          <p className="text-xs text-slate-400 mb-8 font-medium italic">Instant protocol changes for the entire organizational network.</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              { l: 'Lock Global Finances', d: 'Freeze all branch transactions', v: systemState.globalFinancesLocked, fn: setGlobalFinancesLocked },
-              { l: 'Force Sync Results', d: 'Bypass teacher verification delays', v: systemState.forceGradeSync, fn: setForceGradeSync },
-              { l: 'Emergency Lockdown', d: 'Disable all login portals instantly', v: systemState.emergencyLockdown, fn: setEmergencyLockdown },
-              { l: 'Auto-Backup Network', d: 'Perform hourly sharded backups', v: systemState.autoBackupEnabled, fn: setAutoBackupEnabled }
-            ].map((s, i) => (
-              <div key={i} className="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between">
-                <div>
-                  <div className="text-[10px] font-black uppercase mb-1">{s.l}</div>
-                  <p className="text-[8px] text-slate-500 leading-tight">{s.d}</p>
-                </div>
-                <div
-                  onClick={() => s.fn(!s.v)}
-                  className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors ${s.v ? 'bg-indigo-500' : 'bg-slate-700'}`}>
-                  <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${s.v ? 'right-0.5' : 'left-0.5'}`}></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Asset Orchestrator */}
-      <div className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-2xl font-black text-slate-900 uppercase">Cross-Branch Asset Orchestrator</h2>
-            <p className="text-sm text-slate-500 italic">Relocate resources between campuses with automated inventory sharding.</p>
-          </div>
-          <button
-            onClick={handleCreateTransfer}
-            className="px-6 py-3 bg-slate-900 text-white font-black text-[10px] uppercase rounded-xl flex items-center gap-2 hover:bg-indigo-600 transition-all shadow-lg"
-          >
-            <Plus size={16} /> Create Transfer Order
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {transfers.map((t, i) => (
-            <div key={t.id} className="p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:border-indigo-200 transition-all cursor-pointer">
-              <div className="flex justify-between items-start mb-4">
-                <div className="font-black text-slate-900 uppercase text-xs">{t.item}</div>
-                <span className="text-[8px] font-black uppercase text-indigo-500 font-mono tracking-widest">{t.id}</span>
-              </div>
-              <div className="flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase mb-6">
-                <span>{t.from}</span>
-                <ArrowRight size={12} className="text-slate-300" />
-                <span className="text-slate-900">{t.to}</span>
-              </div>
-              <div className={`text-[10px] font-black uppercase px-4 py-2 rounded-full w-fit ${t.status === 'In Transit' ? 'bg-amber-100 text-amber-600' : t.status === 'Approved' ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-200 text-slate-500'}`}>
-                {t.status}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 
   const renderStudentManagement = () => {
     const filteredStudents = MOCK_STUDENTS.filter(s =>
@@ -186,7 +119,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
               className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="all">All Branches</option>
-              {MOCK_SCHOOLS.find(s => s.id === selectedSchool)?.branches.map(b => (
+              {MOCK_SCHOOLS.find(s => s.id === selectedSchool)?.branches?.map(b => (
                 <option key={b.id} value={b.id}>{b.name}</option>
               ))}
             </select>
@@ -340,7 +273,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: 'Network Nodes', value: `${MOCK_SCHOOLS.reduce((acc, s) => acc + s.branches.length, 0)} Clusters`, icon: Server, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+          { label: 'Network Nodes', value: `${MOCK_SCHOOLS.reduce((acc, s) => acc + (s.branches?.length || 0), 0)} Clusters`, icon: Server, color: 'text-indigo-600', bg: 'bg-indigo-50' },
           { label: 'Global Enrollment', value: '1,280 Students', icon: GraduationCap, color: 'text-emerald-600', bg: 'bg-emerald-50' },
           { label: 'Cloud Uptime', value: '99.98%', icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50' },
           { label: 'Consolidated Revenue', value: '$310,000', icon: DollarSign, color: 'text-rose-600', bg: 'bg-rose-50' },
@@ -458,7 +391,50 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
         {activeTab === 'overview' && renderOverview()}
         {activeTab === 'students' && renderStudentManagement()}
         {activeTab === 'integrations' && renderIntegrations()}
-        {activeTab === 'settings' && renderHQCommand()}
+        {activeTab === 'settings' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in slide-in-from-bottom-4 duration-500">
+            <div className="bg-white p-10 rounded-[2rem] border border-slate-100 shadow-sm">
+              <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-8 flex items-center gap-3">
+                <ShieldAlert className="text-rose-500" /> Administrative Constraints
+              </h3>
+              <div className="space-y-4">
+                {[
+                  { l: 'Enable Global Result Override', d: 'Allow HQ to edit branch-locked results', v: true },
+                  { l: 'Enforce Branch Sharding', d: 'Isolate data strictly per campus node', v: true },
+                  { l: 'HQ Notification Bypass', d: 'Mute alerts for standard operations', v: false },
+                  { l: 'Automated Log Clearing', d: 'Delete logs older than 24 months', v: true }
+                ].map((s, i) => (
+                  <div key={i} className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div className="max-w-xs">
+                      <div className="text-xs font-black text-slate-900 uppercase mb-1">{s.l}</div>
+                      <p className="text-[10px] text-slate-400 font-bold leading-tight">{s.d}</p>
+                    </div>
+                    <div className={`w-12 h-6 rounded-full relative transition-colors cursor-pointer ${s.v ? 'bg-indigo-600' : 'bg-slate-300'}`}>
+                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${s.v ? 'right-1' : 'left-1'}`}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-slate-900 text-white p-10 rounded-[2rem] shadow-2xl relative overflow-hidden flex flex-col justify-center">
+              <div className="absolute bottom-0 right-0 p-10 opacity-5 rotate-12">
+                <Database size={180} />
+              </div>
+              <h4 className="text-2xl font-black mb-4 uppercase tracking-tighter">Database Sharding Information</h4>
+              <p className="text-slate-400 text-sm mb-8 italic">Your EdMS is currently running on distributed branch nodes for maximum availability and low latency interaction.</p>
+              <div className="p-6 bg-white/10 rounded-2xl border border-white/5 space-y-4">
+                <div>
+                  <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Downtown Node Capacity</div>
+                  <div className="h-2 w-full bg-white/5 rounded-full"><div className="h-full bg-indigo-500 rounded-full w-[84%]"></div></div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Westside Node Capacity</div>
+                  <div className="h-2 w-full bg-white/5 rounded-full"><div className="h-full bg-indigo-500 rounded-full w-[45%]"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {activeTab === 'branches' && (
           <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex justify-between items-center bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
@@ -522,50 +498,6 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
               ))}
             </div>
             <button className="mt-12 px-10 py-4 bg-slate-900 text-white font-black text-xs rounded-2xl uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-indigo-600 transition-all">Download Network Audit Log</button>
-          </div>
-        )}
-        {activeTab === 'settings' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in slide-in-from-bottom-4 duration-500">
-            <div className="bg-white p-10 rounded-[2rem] border border-slate-100 shadow-sm">
-              <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-8 flex items-center gap-3">
-                <ShieldAlert className="text-rose-500" /> Administrative Constraints
-              </h3>
-              <div className="space-y-4">
-                {[
-                  { l: 'Enable Global Result Override', d: 'Allow HQ to edit branch-locked results', v: true },
-                  { l: 'Enforce Branch Sharding', d: 'Isolate data strictly per campus node', v: true },
-                  { l: 'HQ Notification Bypass', d: 'Mute alerts for standard operations', v: false },
-                  { l: 'Automated Log Clearing', d: 'Delete logs older than 24 months', v: true }
-                ].map((s, i) => (
-                  <div key={i} className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                    <div className="max-w-xs">
-                      <div className="text-xs font-black text-slate-900 uppercase mb-1">{s.l}</div>
-                      <p className="text-[10px] text-slate-400 font-bold leading-tight">{s.d}</p>
-                    </div>
-                    <div className={`w-12 h-6 rounded-full relative transition-colors cursor-pointer ${s.v ? 'bg-indigo-600' : 'bg-slate-300'}`}>
-                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${s.v ? 'right-1' : 'left-1'}`}></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="bg-slate-900 text-white p-10 rounded-[2rem] shadow-2xl relative overflow-hidden flex flex-col justify-center">
-              <div className="absolute bottom-0 right-0 p-10 opacity-5 rotate-12">
-                <Database size={180} />
-              </div>
-              <h4 className="text-2xl font-black mb-4 uppercase tracking-tighter">Database Sharding Information</h4>
-              <p className="text-slate-400 text-sm mb-8 italic">Your EdMS is currently running on distributed branch nodes for maximum availability and low latency interaction.</p>
-              <div className="p-6 bg-white/10 rounded-2xl border border-white/5 space-y-4">
-                <div>
-                  <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Downtown Node Capacity</div>
-                  <div className="h-2 w-full bg-white/5 rounded-full"><div className="h-full bg-indigo-500 rounded-full w-[84%]"></div></div>
-                </div>
-                <div>
-                  <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Westside Node Capacity</div>
-                  <div className="h-2 w-full bg-white/5 rounded-full"><div className="h-full bg-indigo-500 rounded-full w-[45%]"></div></div>
-                </div>
-              </div>
-            </div>
           </div>
         )}
       </div>
