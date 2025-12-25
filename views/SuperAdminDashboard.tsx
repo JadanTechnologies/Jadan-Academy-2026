@@ -29,7 +29,12 @@ import {
   Filter,
   GraduationCap,
   Briefcase,
-  History
+  History,
+  Package,
+  HeartPulse,
+  ClipboardList,
+  Stamp,
+  Box
 } from 'lucide-react';
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie } from 'recharts';
 
@@ -47,7 +52,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
     setForceGradeSync,
     setAutoBackupEnabled
   } = useSystem();
-  const [activeTab, setActiveTab] = useState<'overview' | 'branches' | 'students' | 'payroll' | 'finance' | 'integrations' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'branches' | 'students' | 'payroll' | 'finance' | 'inventory' | 'compliance' | 'integrations' | 'settings'>('overview');
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
@@ -55,7 +60,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
 
   useEffect(() => {
     if (defaultTab === 'dash' || !defaultTab) setActiveTab('overview');
-    else if (['branches', 'students', 'payroll', 'finance', 'integrations', 'settings'].includes(defaultTab)) setActiveTab(defaultTab as any);
+    else if (['branches', 'students', 'payroll', 'finance', 'inventory', 'compliance', 'integrations', 'settings'].includes(defaultTab)) setActiveTab(defaultTab as any);
   }, [defaultTab]);
 
   const [transfers, setTransfers] = useState([
@@ -268,6 +273,171 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
     </div>
   );
 
+  const renderInventory = () => (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase">Inventory Orchestrator</h2>
+          <p className="text-sm text-slate-500 italic">Cross-branch asset transfers and global logistics tracking.</p>
+        </div>
+        <button onClick={handleCreateTransfer} className="px-8 py-4 bg-indigo-600 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl hover:bg-slate-900 transition-all flex items-center gap-2">
+          <Plus size={16} /> New Transfer Order
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+          <div className="p-8 border-b border-slate-50 bg-slate-50/30 font-black text-slate-900 uppercase">Live Transfer Queue</div>
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                <th className="px-8 py-4">Item Shard</th>
+                <th className="px-8 py-4">Route</th>
+                <th className="px-8 py-4">Status</th>
+                <th className="px-8 py-4 text-right">Reference</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {transfers.map((tx, i) => (
+                <tr key={i} className="hover:bg-slate-50/50 transition-all">
+                  <td className="px-8 py-6">
+                    <div className="text-sm font-bold text-slate-900 uppercase">{tx.item}</div>
+                    <div className="text-[10px] text-slate-400 font-bold uppercase">Asset Node</div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-600">
+                      {tx.from} <ArrowRight size={10} className="text-indigo-400" /> {tx.to}
+                    </div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${tx.status === 'In Transit' ? 'bg-amber-50 text-amber-600' : tx.status === 'Approved' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}>
+                      {tx.status}
+                    </span>
+                  </td>
+                  <td className="px-8 py-6 text-right font-mono text-[10px] text-slate-400 font-black">{tx.id}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden flex flex-col hover:shadow-2xl hover:shadow-indigo-900/20 transition-all">
+          <div className="absolute -top-10 -right-10 p-10 opacity-10 rotate-12">
+            <Package size={150} />
+          </div>
+          <h3 className="text-2xl font-black mb-4 uppercase tracking-tighter">Global Asset Health</h3>
+          <p className="text-slate-400 text-sm mb-8 font-medium italic">Consolidated equipment diagnostics across the entire institutional network.</p>
+          <div className="space-y-6">
+            <div>
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-[10px] font-black uppercase text-indigo-400">ICT Infrastructure</span>
+                <span className="text-xs font-black">92%</span>
+              </div>
+              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-indigo-500" style={{ width: '92%' }}></div>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-[10px] font-black uppercase text-amber-400">Science Labs</span>
+                <span className="text-xs font-black">74%</span>
+              </div>
+              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-amber-500" style={{ width: '74%' }}></div>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-[10px] font-black uppercase text-emerald-400">Fleet Mobility</span>
+                <span className="text-xs font-black">88%</span>
+              </div>
+              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-500" style={{ width: '88%' }}></div>
+              </div>
+            </div>
+          </div>
+          <button className="mt-auto w-full py-4 bg-white/10 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-all">Consolidated Audit</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderCompliance = () => (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase">Compliance & Recruitment Hub</h2>
+          <p className="text-sm text-slate-500 italic">Institutional standards tracking and global faculty onboarding.</p>
+        </div>
+        <div className="flex gap-2">
+          {
+            [
+              { label: 'Faculty Health', val: '98%', c: 'emerald' },
+              { label: 'Legal Audit', val: 'Pass', c: 'indigo' },
+            ].map((stat, i) => (
+              <div key={i} className={`bg-${stat.c}-50 px-6 py-3 rounded-2xl border border-${stat.c}-100`}>
+                <p className={`text-[8px] font-black text-${stat.c}-600 uppercase mb-1`}>{stat.label}</p>
+                <p className={`text-lg font-black text-${stat.c}-700`}>{stat.val}</p>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="text-xl font-black text-slate-900 uppercase">Faculty Recruitment Pipeline</h3>
+            <button className="p-2 bg-slate-50 rounded-xl text-slate-400 hover:text-indigo-600 transition-colors"><Plus size={20} /></button>
+          </div>
+          <div className="space-y-4">
+            {[
+              { n: 'Prof. David Mendel', r: 'Mathematics HoD', s: 'Intervening', p: 85 },
+              { n: 'Dr. Elena Rossi', r: 'Research Lead', s: 'Vetting', p: 40 },
+              { n: 'Sarah Jenkins', r: 'Primary Coordinator', s: 'Contracting', p: 100 },
+            ].map((r, i) => (
+              <div key={i} className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex items-center justify-between group hover:border-indigo-200 transition-all">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-slate-300 group-hover:text-indigo-600 transition-colors"><Users size={24} /></div>
+                  <div>
+                    <div className="text-sm font-black text-slate-900 uppercase">{r.n}</div>
+                    <div className="text-[10px] text-slate-400 font-bold uppercase">{r.r}</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] font-black uppercase text-indigo-600 mb-1">{r.s}</div>
+                  <div className="w-20 h-1 bg-slate-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-indigo-500" style={{ width: `${r.p}%` }}></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col">
+          <h3 className="text-xl font-black text-slate-900 uppercase mb-8 flex items-center gap-3"><Stamp className="text-rose-600" /> Compliance Registry</h3>
+          <div className="space-y-4">
+            {[
+              { l: 'Ministry of Education Permit', d: 'Expires in 4 months', s: 'Valid' },
+              { l: 'ISO 9001 Quality Shard', d: 'Audit scheduled for Week 12', s: 'In Review' },
+              { l: 'Child Protection Protocol', d: 'Verified across all branches', s: 'Certified' },
+            ].map((c, i) => (
+              <div key={i} className="p-5 border border-slate-100 rounded-2xl flex justify-between items-center hover:bg-slate-50 transition-colors">
+                <div>
+                  <div className="text-xs font-black text-slate-900 uppercase">{c.l}</div>
+                  <p className="text-[10px] text-slate-400 font-medium italic">{c.d}</p>
+                </div>
+                <span className={`text-[8px] font-black uppercase px-3 py-1 rounded-full ${c.s === 'In Review' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}`}>{c.s}</span>
+              </div>
+            ))}
+          </div>
+          <button className="mt-8 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all">Generate Institutional Report</button>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderIntegrations = () => (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -473,6 +643,8 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
           { id: 'students', label: 'Students', icon: GraduationCap },
           { id: 'payroll', label: 'Payroll', icon: Briefcase },
           { id: 'finance', label: 'Fees', icon: DollarSign },
+          { id: 'inventory', label: 'Logistics', icon: Package },
+          { id: 'compliance', label: 'Compliance', icon: Stamp },
           { id: 'integrations', label: 'API & Gateways', icon: Globe },
           { id: 'settings', label: 'System', icon: ShieldAlert },
         ].map(tab => (
@@ -487,9 +659,54 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
       </div>
 
       <div className="min-h-[500px]">
-        {activeTab === 'overview' && renderOverview()}
+        {activeTab === 'overview' && (
+          <>
+            {renderOverview()}
+            {renderGlobalAudit()}
+          </>
+        )}
+        {activeTab === 'branches' && (
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="flex justify-between items-center bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+              <div>
+                <h2 className="text-2xl font-black text-slate-900 uppercase">Campus Node Orchestration</h2>
+                <p className="text-sm text-slate-500 font-medium italic">Overseeing {MOCK_SCHOOLS[0].branches.length} active campus shards.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {MOCK_SCHOOLS[0].branches.map(branch => (
+                <div key={branch.id} className="bg-white rounded-[2rem] border border-slate-100 p-8 hover:shadow-2xl hover:shadow-slate-200 transition-all group relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <Building2 size={80} />
+                  </div>
+                  <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <Building2 size={28} />
+                  </div>
+                  <h3 className="text-xl font-black text-slate-900 mb-1 leading-tight">{branch.name}</h3>
+                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-6">{branch.location} Node</p>
+                  <div className="space-y-4 border-t border-slate-50 pt-6">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-black text-slate-400 uppercase">Active Shards</span>
+                      <span className="text-xs font-black text-indigo-600">{MOCK_STUDENTS.filter(s => s.branchId === branch.id).length} Students</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => triggerToast(`Assuming proxy control for ${branch.name}...`)}
+                    className="mt-8 w-full py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-600 transition-all flex items-center justify-center gap-2"
+                  >
+                    Sync Terminal <ArrowRight size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {activeTab === 'students' && renderStudentManagement()}
         {activeTab === 'payroll' && renderPayroll()}
+        {activeTab === 'finance' && renderFeeManagement()}
+        {activeTab === 'inventory' && renderInventory()}
+        {activeTab === 'compliance' && renderCompliance()}
         {activeTab === 'integrations' && renderIntegrations()}
         {activeTab === 'settings' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in slide-in-from-bottom-4 duration-500">
@@ -538,46 +755,8 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
             </div>
           </div>
         )}
-        {activeTab === 'branches' && (
-          <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="flex justify-between items-center bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-              <div>
-                <h2 className="text-2xl font-black text-slate-900 uppercase">Campus Node Orchestration</h2>
-                <p className="text-sm text-slate-500 font-medium italic">Overseeing {MOCK_SCHOOLS[0].branches.length} active campus shards.</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {MOCK_SCHOOLS[0].branches.map(branch => (
-                <div key={branch.id} className="bg-white rounded-[2rem] border border-slate-100 p-8 hover:shadow-2xl hover:shadow-slate-200 transition-all group relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <Building2 size={80} />
-                  </div>
-                  <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <Building2 size={28} />
-                  </div>
-                  <h3 className="text-xl font-black text-slate-900 mb-1 leading-tight">{branch.name}</h3>
-                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-6">{branch.location} Node</p>
-                  <div className="space-y-4 border-t border-slate-50 pt-6">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-black text-slate-400 uppercase">Active Shards</span>
-                      <span className="text-xs font-black text-indigo-600">{MOCK_STUDENTS.filter(s => s.branchId === branch.id).length} Students</span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => triggerToast(`Assuming proxy control for ${branch.name}...`)}
-                    className="mt-8 w-full py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-600 transition-all flex items-center justify-center gap-2"
-                  >
-                    Sync Terminal <ArrowRight size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'finance' && renderFeeManagement()}
       </div>
+
 
 
       {showToast && (

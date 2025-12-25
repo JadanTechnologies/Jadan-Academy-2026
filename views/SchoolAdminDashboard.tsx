@@ -5,7 +5,7 @@ import {
   Building, BookOpen, Layers, DollarSign, Megaphone, ArrowRight, Truck, Box,
   HeartPulse, ShieldAlert, Library, Calendar, Search, Layout,
   UserPlus, CreditCard, UserCheck, Briefcase, Clock, Printer, BellRing, ReceiptText, ChevronDown, ShieldCheck,
-  ShoppingCart, Fingerprint, FileText
+  ShoppingCart, Fingerprint, FileText, HardDrive, Zap, History, ClipboardList
 } from 'lucide-react';
 import { MOCK_INVENTORY, MOCK_BUS_ROUTES, MOCK_BOOKS, MOCK_SUBJECTS, MOCK_CLASSES, MOCK_FEE_STRUCTURES, MOCK_PAYMENTS } from '../constants';
 import { useSystem } from '../SystemContext';
@@ -18,7 +18,7 @@ interface SchoolAdminDashboardProps {
 
 const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, user, defaultTab }) => {
   const { state: systemState } = useSystem();
-  const [activeTab, setActiveTab] = useState<'dash' | 'results' | 'ops' | 'finance' | 'staff' | 'academics' | 'admissions' | 'procurement'>(defaultTab as any || 'dash');
+  const [activeTab, setActiveTab] = useState<'dash' | 'results' | 'ops' | 'finance' | 'staff' | 'academics' | 'admissions' | 'procurement' | 'security' | 'discipline'>(defaultTab as any || 'dash');
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -365,6 +365,148 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
     </div>
   );
 
+  const renderSecurity = () => (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase flex items-center gap-3">
+            Security & Biometrics <ShieldCheck className="text-rose-600" size={24} />
+          </h2>
+          <p className="text-sm text-slate-500 italic">Identity verification and visitor management terminal.</p>
+        </div>
+        <button className="px-8 py-4 bg-rose-600 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl hover:bg-slate-900 transition-all">
+          Log New Visitor
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+          <div className="p-8 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center">
+            <h3 className="text-xl font-black text-slate-900 uppercase">Visitor Registry</h3>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Live Logs</span>
+          </div>
+          <div className="p-0">
+            <table className="w-full text-left">
+              <thead className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                <tr>
+                  <th className="px-8 py-4">Visitor</th>
+                  <th className="px-8 py-4">Purpose</th>
+                  <th className="px-8 py-4">Time In</th>
+                  <th className="px-8 py-4 text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {[
+                  { n: 'Robert Vance', p: 'Parent Meeting', t: '09:12 AM', s: 'On Site' },
+                  { n: 'Contracting Service', p: 'AC Maintenance', t: '10:45 AM', s: 'Signed Out' },
+                ].map((v, i) => (
+                  <tr key={i} className="hover:bg-slate-50/50 transition-all">
+                    <td className="px-8 py-6">
+                      <div className="font-bold text-slate-900 uppercase text-xs">{v.n}</div>
+                    </td>
+                    <td className="px-8 py-6 text-xs font-black text-slate-600 uppercase">{v.p}</td>
+                    <td className="px-8 py-6 text-xs text-slate-400 font-bold">{v.t}</td>
+                    <td className="px-8 py-6 text-right">
+                      <span className={`text-[8px] font-black uppercase px-2 py-1 rounded-full ${v.s === 'On Site' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>{v.s}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden flex flex-col">
+          <div className="absolute -top-10 -right-10 p-10 opacity-10 rotate-12">
+            <HardDrive size={150} />
+          </div>
+          <h3 className="text-2xl font-black mb-4 uppercase tracking-tighter">Biometric Sync</h3>
+          <p className="text-slate-400 text-sm mb-8 font-medium italic">Identity node synchronization for staff and student clusters.</p>
+          <div className="space-y-6">
+            <div>
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-[10px] font-black uppercase text-indigo-400">Staff Biometrics</span>
+                <span className="text-xs font-black">100% Verified</span>
+              </div>
+              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-indigo-500" style={{ width: '100%' }}></div>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-[10px] font-black uppercase text-rose-400">Student Biometrics</span>
+                <span className="text-xs font-black">84% Synced</span>
+              </div>
+              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-rose-500" style={{ width: '84%' }}></div>
+              </div>
+            </div>
+          </div>
+          <button className="mt-auto w-full py-4 bg-white/10 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-all">Force Re-Sync</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderDiscipline = () => (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase flex items-center gap-3">
+            Discipline & Events <Zap className="text-amber-500" size={24} />
+          </h2>
+          <p className="text-sm text-slate-500 italic">Institutional event orchestration and disciplinary registry.</p>
+        </div>
+        <button className="px-8 py-4 bg-amber-500 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl hover:bg-slate-900 transition-all">
+          Schedule Global Event
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8">
+          <h3 className="text-xl font-black text-slate-900 uppercase mb-8">Disciplinary Case Log</h3>
+          <div className="space-y-4">
+            {[
+              { n: 'James Peterson', c: 'Grade 9B', i: 'Unauthorized Device Usage', s: 'Suspended (3 Days)', l: 'High' },
+              { n: 'Emily Summers', c: 'Grade 11A', i: 'Late Submission Pattern', s: 'Warning Issued', l: 'Low' },
+            ].map((caseItem, i) => (
+              <div key={i} className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex justify-between items-center group hover:border-amber-200 transition-all">
+                <div className="flex items-center gap-4">
+                  <div className={`w-2 h-10 rounded-full ${caseItem.l === 'High' ? 'bg-rose-500' : 'bg-amber-400'}`}></div>
+                  <div>
+                    <div className="text-sm font-black text-slate-900 uppercase">{caseItem.n}</div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">{caseItem.c} • {caseItem.i}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] font-black text-slate-900 uppercase mb-1">{caseItem.s}</div>
+                  <button className="text-[8px] font-black text-indigo-600 uppercase hover:underline">View Dossier</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-indigo-600 rounded-[2.5rem] p-8 text-white relative overflow-hidden flex flex-col">
+          <Calendar size={120} className="absolute -top-10 -right-10 opacity-10" />
+          <h4 className="text-2xl font-black mb-4 uppercase tracking-tighter leading-tight">Branch Calendar</h4>
+          <div className="space-y-4 mb-8">
+            {[
+              { e: 'Inter-House Sports', d: 'Oct 24, 2025' },
+              { e: 'Mid-Term Assessment', d: 'Nov 02, 2025' },
+            ].map((ev, i) => (
+              <div key={i} className="p-4 bg-white/10 rounded-2xl border border-white/10">
+                <div className="text-xs font-black uppercase">{ev.e}</div>
+                <div className="text-[10px] text-indigo-200 font-bold">{ev.d}</div>
+              </div>
+            ))}
+          </div>
+          <button className="mt-auto w-full py-4 bg-white text-indigo-600 font-black rounded-2xl uppercase text-[10px] tracking-widest hover:bg-indigo-50 transition-all">Launch Scheduler</button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20">
       {selectedReceipt && (
@@ -447,6 +589,8 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
           { id: 'academics', label: 'Curriculum', icon: BookOpen },
           { id: 'admissions', label: 'Admissions', icon: Fingerprint },
           { id: 'procurement', label: 'Procurement', icon: ShoppingCart },
+          { id: 'security', label: 'Security', icon: ShieldCheck },
+          { id: 'discipline', label: 'Legacy', icon: ClipboardList },
         ].map(tab => (
           <button
             key={tab.id} onClick={() => setActiveTab(tab.id as any)}
@@ -633,6 +777,8 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
         )}
         {activeTab === 'admissions' && renderAdmissions()}
         {activeTab === 'procurement' && renderProcurement()}
+        {activeTab === 'security' && renderSecurity()}
+        {activeTab === 'discipline' && renderDiscipline()}
       </div>
 
       {showToast && (
