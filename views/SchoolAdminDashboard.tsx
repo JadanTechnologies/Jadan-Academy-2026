@@ -1,13 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { School, User, UserRole, InventoryItem, BusRoute, LibraryBook, Student, FeeStructure, PaymentRecord } from '../types';
 import {
   Users, GraduationCap, ClipboardCheck, Settings2, Plus, CheckCircle2, XCircle, Eye,
   Building, BookOpen, Layers, DollarSign, Megaphone, ArrowRight, Truck, Box,
   HeartPulse, ShieldAlert, Library, Calendar, Search, Layout,
-  UserPlus, CreditCard, UserCheck, Briefcase, Clock, Printer, BellRing, ReceiptText, ChevronDown, ShieldCheck
+  UserPlus, CreditCard, UserCheck, Briefcase, Clock, Printer, BellRing, ReceiptText, ChevronDown, ShieldCheck,
+  ShoppingCart, Fingerprint, FileText
 } from 'lucide-react';
 import { MOCK_INVENTORY, MOCK_BUS_ROUTES, MOCK_BOOKS, MOCK_SUBJECTS, MOCK_CLASSES, MOCK_FEE_STRUCTURES, MOCK_PAYMENTS } from '../constants';
+import { useSystem } from '../SystemContext';
 
 interface SchoolAdminDashboardProps {
   school: School;
@@ -15,22 +16,19 @@ interface SchoolAdminDashboardProps {
   defaultTab?: string;
 }
 
-import { useSystem } from '../SystemContext';
-
 const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, user, defaultTab }) => {
   const { state: systemState } = useSystem();
-  const [activeTab, setActiveTab] = useState<string>(defaultTab || 'dash');
+  const [activeTab, setActiveTab] = useState<'dash' | 'results' | 'ops' | 'finance' | 'staff' | 'academics' | 'admissions' | 'procurement'>(defaultTab as any || 'dash');
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
   // Lock logic
-  const isFinanceLocked = systemState.globalFinancesLocked;
   const isSystemLocked = systemState.emergencyLockdown;
   const [financeSubTab, setFinanceSubTab] = useState<'track' | 'structure' | 'history'>('track');
   const [selectedReceipt, setSelectedReceipt] = useState<PaymentRecord | null>(null);
 
   useEffect(() => {
-    if (defaultTab) setActiveTab(defaultTab);
+    if (defaultTab) setActiveTab(defaultTab as any);
   }, [defaultTab]);
 
   const triggerToast = (msg: string) => {
@@ -39,7 +37,6 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  // --- Strict Filtering Logic ---
   const branchInventory = MOCK_INVENTORY.filter(i => i.branchId === user.branchId);
   const branchTransport = MOCK_BUS_ROUTES.filter(r => r.branchId === user.branchId);
   const branchBooks = MOCK_BOOKS.filter(b => b.branchId === user.branchId);
@@ -47,8 +44,6 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
   const branchFeeStructures = MOCK_FEE_STRUCTURES.filter(f => f.branchId === user.branchId);
   const branchPayments = MOCK_PAYMENTS.filter(p => p.branchId === user.branchId);
 
-  // Mock Students for this branch
-  // Fixed role to use UserRole enum and feeStatus to use proper union literals
   const branchStudents: Student[] = [
     { id: 's1', name: 'Alice Thompson', studentId: 'STU-1001', classId: 'c1', arm: 'A', parentEmail: 'p.thompson@email.com', branchId: 'b1', feeStatus: 'Paid' as 'Paid', totalPaid: 1300, role: UserRole.STUDENT, email: 'a@t.com' },
     { id: 's2', name: 'Bob Wilson', studentId: 'STU-1002', classId: 'c1', arm: 'A', parentEmail: 'b.wilson@email.com', branchId: 'b1', feeStatus: 'Partial' as 'Partial', totalPaid: 600, role: UserRole.STUDENT, email: 'b@w.com' },
@@ -275,6 +270,101 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
     </div>
   );
 
+  const renderAdmissions = () => (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase flex items-center gap-3">
+            Admissions Terminal <Fingerprint className="text-indigo-600" size={24} />
+          </h2>
+          <p className="text-sm text-slate-500 italic">Electronic candidate processing and enrollment verification.</p>
+        </div>
+        <button className="px-8 py-4 bg-indigo-600 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl hover:bg-slate-900 transition-all">
+          Review Entry Queue (14)
+        </button>
+      </div>
+
+      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="p-8 border-b border-slate-50 bg-slate-50/30">
+          <h3 className="text-xl font-black text-slate-900 uppercase">Awaiting Documentation</h3>
+        </div>
+        <div className="p-0">
+          <table className="w-full text-left">
+            <thead className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+              <tr>
+                <th className="px-8 py-4">Nominee</th>
+                <th className="px-8 py-4">Target Node</th>
+                <th className="px-8 py-4">Progress</th>
+                <th className="px-8 py-4 text-right">Reference</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {[
+                { n: 'Samuel Okafor', c: 'Grade 10', p: 80, id: 'ADM-PR-01' },
+                { n: 'Amara Wilson', c: 'Grade 7', p: 30, id: 'ADM-PR-02' },
+              ].map((c, i) => (
+                <tr key={i} className="hover:bg-slate-50/50 transition-all">
+                  <td className="px-8 py-6">
+                    <div className="font-bold text-slate-900 uppercase text-xs">{c.n}</div>
+                  </td>
+                  <td className="px-8 py-6 text-xs font-black text-slate-600 uppercase">{c.c}</td>
+                  <td className="px-8 py-6">
+                    <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-indigo-500" style={{ width: `${c.p}%` }}></div>
+                    </div>
+                  </td>
+                  <td className="px-8 py-6 text-right font-mono text-[10px] text-slate-400 font-black">{c.id}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderProcurement = () => (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase flex items-center gap-3">
+            Procurement Node <ShoppingCart className="text-amber-600" size={24} />
+          </h2>
+          <p className="text-sm text-slate-500 italic">Requisition lifecycle and vendor asset management.</p>
+        </div>
+        <button className="px-8 py-4 bg-amber-600 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl hover:bg-slate-900 transition-all">
+          New Requisition
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white">
+          <h3 className="text-xl font-black uppercase mb-8">Asset Requests</h3>
+          <div className="space-y-4">
+            {[
+              { item: 'Chemical Reagents (Set B)', cost: '$1,200', status: 'Awaiting HQ Approval' },
+              { item: 'Bus Spare Parts (Engine)', cost: '$850', status: 'Verified' },
+            ].map((r, i) => (
+              <div key={i} className="p-6 bg-white/5 rounded-3xl border border-white/10 flex justify-between items-center">
+                <div>
+                  <div className="text-sm font-black uppercase text-white">{r.item}</div>
+                  <div className="text-xs font-bold text-slate-500">{r.cost}</div>
+                </div>
+                <span className="text-[8px] font-black uppercase px-3 py-1 bg-white/10 rounded-full">{r.status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-center items-center text-center">
+          <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-3xl flex items-center justify-center mb-6"><FileText size={32} /></div>
+          <h3 className="text-xl font-black text-slate-900 uppercase mb-2">Vendor Database</h3>
+          <p className="text-slate-500 text-sm mb-8 px-4 font-medium italic">Directory of certified institutional suppliers and maintenance partners.</p>
+          <button className="px-8 py-3 bg-slate-100 text-slate-900 font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-indigo-50 transition-colors">Catalog View</button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20">
       {selectedReceipt && (
@@ -352,12 +442,14 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
           { id: 'dash', label: 'Dashboard', icon: Layout },
           { id: 'results', label: 'Verify Results', icon: ClipboardCheck },
           { id: 'ops', label: 'Operations', icon: Settings2 },
-          { id: 'finance', label: 'Fee Management', icon: DollarSign },
+          { id: 'finance', label: 'Fees', icon: DollarSign },
           { id: 'staff', label: 'Staff Hub', icon: Users },
           { id: 'academics', label: 'Curriculum', icon: BookOpen },
+          { id: 'admissions', label: 'Admissions', icon: Fingerprint },
+          { id: 'procurement', label: 'Procurement', icon: ShoppingCart },
         ].map(tab => (
           <button
-            key={tab.id} onClick={() => setActiveTab(tab.id)}
+            key={tab.id} onClick={() => setActiveTab(tab.id as any)}
             className={`px-8 py-3 rounded-[1.2rem] font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === tab.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             <tab.icon size={16} />
@@ -539,6 +631,8 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
             </div>
           </div>
         )}
+        {activeTab === 'admissions' && renderAdmissions()}
+        {activeTab === 'procurement' && renderProcurement()}
       </div>
 
       {showToast && (

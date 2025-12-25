@@ -12,7 +12,12 @@ import {
   BookOpen,
   ArrowUpRight,
   Download,
-  CheckCircle2
+  CheckCircle2,
+  Sparkles,
+  Activity,
+  History,
+  Layout,
+  Plus
 } from 'lucide-react';
 
 interface TeacherDashboardProps {
@@ -24,7 +29,7 @@ import { useSystem } from '../SystemContext';
 
 const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, initialTab }) => {
   const { state: systemState } = useSystem();
-  const [activeTab, setActiveTab] = useState(initialTab || 'dash');
+  const [activeTab, setActiveTab] = useState<'dash' | 'attendance' | 'entry' | 'planning' | 'behavior'>(initialTab as any || 'dash');
   const [showSaveToast, setShowSaveToast] = useState(false);
 
   const isLocked = systemState.emergencyLockdown;
@@ -353,16 +358,120 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user, initialTab })
     </div>
   );
 
+  const renderPlanning = () => (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase flex items-center gap-3">
+            AI Lesson Orchestrator <Sparkles className="text-indigo-600" size={24} />
+          </h2>
+          <p className="text-sm text-slate-500 italic">Predictive curriculum coverage and automated resource generation.</p>
+        </div>
+        <button className="px-8 py-4 bg-indigo-600 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl hover:bg-slate-900 transition-all flex items-center gap-2">
+          <Sparkles size={16} /> Generate Week 12 Blueprint
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white">
+          <h3 className="text-xl font-black uppercase mb-8">Current Curriculum Shards</h3>
+          <div className="space-y-4">
+            {[
+              { subject: 'Mathematics', topic: 'Calculus Fundamentals', progress: 85 },
+              { subject: 'Further Maths', topic: 'Matrix Theory', progress: 40 },
+            ].map((c, i) => (
+              <div key={i} className="p-6 bg-white/5 rounded-3xl border border-white/10">
+                <div className="flex justify-between items-end mb-4">
+                  <div>
+                    <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{c.subject}</div>
+                    <div className="text-sm font-black uppercase">{c.topic}</div>
+                  </div>
+                  <div className="text-xs font-black text-indigo-400">{c.progress}%</div>
+                </div>
+                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${c.progress}%` }}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8 flex flex-col justify-center items-center text-center">
+          <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-3xl flex items-center justify-center mb-6"><FileSpreadsheet size={32} /></div>
+          <h3 className="text-xl font-black text-slate-900 uppercase mb-2">Resource Repository</h3>
+          <p className="text-slate-500 text-sm mb-8 px-4 font-medium italic">Awaiting AI synchronization of PDF handouts, quizzes, and multimedia assets.</p>
+          <button className="px-8 py-3 bg-slate-100 text-slate-900 font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-indigo-50 transition-colors">Open Vault</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderBehavior = () => (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase flex items-center gap-3">
+            Behavioral Analytics <Activity className="text-rose-600" size={24} />
+          </h2>
+          <p className="text-sm text-slate-500 italic">Discipline tracking and wellness registry mapping.</p>
+        </div>
+        <button className="px-8 py-4 bg-rose-600 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl hover:bg-slate-900 transition-all flex items-center gap-2">
+          <Plus size={16} /> Log Behavioral Incident
+        </button>
+      </div>
+
+      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="p-8 border-b border-slate-50">
+          <h3 className="text-xl font-black text-slate-900 uppercase">Recent Peer Interactions</h3>
+        </div>
+        <div className="p-8 space-y-4">
+          {[
+            { name: 'Alice Thompson', type: 'Positive Contribution', desc: 'Exceptional teamwork during lab session.', color: 'emerald' },
+            { name: 'Bob Wilson', type: 'Minor Distraction', desc: 'Frequent interruptions during Matrix lecture.', color: 'amber' },
+          ].map((b, i) => (
+            <div key={i} className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100 transition-all group">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                  <Users size={20} />
+                </div>
+                <div>
+                  <div className="font-black text-slate-900 uppercase tracking-tight">{b.name}</div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{b.type}</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xs font-medium text-slate-500 italic max-w-md">{b.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
-      <div className="flex gap-1 bg-slate-200/50 p-1 rounded-2xl w-fit overflow-x-auto no-scrollbar">
-        <button onClick={() => setActiveTab('dash')} className={`px-8 py-2.5 rounded-xl font-bold text-xs uppercase transition-all whitespace-nowrap ${activeTab === 'dash' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Overview</button>
-        <button onClick={() => setActiveTab('attendance')} className={`px-8 py-2.5 rounded-xl font-bold text-xs uppercase transition-all whitespace-nowrap ${activeTab === 'attendance' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>My Attendance</button>
-        <button onClick={() => setActiveTab('entry')} className={`px-8 py-2.5 rounded-xl font-bold text-xs uppercase transition-all whitespace-nowrap ${activeTab === 'entry' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Grades Terminal</button>
+      <div className="flex gap-1 bg-slate-200/50 p-1.5 rounded-[1.5rem] w-fit overflow-x-auto no-scrollbar">
+        {[
+          { id: 'dash', label: 'Dashboard', icon: Layout },
+          { id: 'attendance', label: 'Attendance', icon: History },
+          { id: 'entry', label: 'Gradebook', icon: FileSpreadsheet },
+          { id: 'planning', label: 'AI Planning', icon: Sparkles },
+          { id: 'behavior', label: 'Behavior', icon: Activity },
+        ].map(tab => (
+          <button
+            key={tab.id} onClick={() => setActiveTab(tab.id as any)}
+            className={`px-8 py-3 rounded-[1.2rem] font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === tab.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            <tab.icon size={16} />
+            {tab.label}
+          </button>
+        ))}
       </div>
       {activeTab === 'dash' && renderOverview()}
       {activeTab === 'attendance' && renderAttendance()}
       {activeTab === 'entry' && renderResultInput()}
+      {activeTab === 'planning' && renderPlanning()}
+      {activeTab === 'behavior' && renderBehavior()}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MOCK_SCHOOLS, MOCK_STUDENTS, MOCK_PAYMENT_PROVIDERS, MOCK_COMM_PROVIDERS } from '../constants';
+import { MOCK_SCHOOLS, MOCK_STUDENTS, MOCK_PAYMENT_PROVIDERS, MOCK_COMM_PROVIDERS, MOCK_STAFF, MOCK_PAYROLL, MOCK_PAYMENTS } from '../constants';
 import {
   Building2,
   Plus,
@@ -42,22 +42,20 @@ import { useSystem } from '../SystemContext';
 const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab }) => {
   const {
     state: systemState,
-    enterGhostMode,
+    setEmergencyLockdown,
     setGlobalFinancesLocked,
     setForceGradeSync,
-    setEmergencyLockdown,
     setAutoBackupEnabled
   } = useSystem();
-  const [activeTab, setActiveTab] = useState<'overview' | 'branches' | 'students' | 'integrations' | 'finance' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'branches' | 'students' | 'payroll' | 'finance' | 'integrations' | 'settings'>('overview');
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-  const [selectedSchool, setSelectedSchool] = useState<string>('all');
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [showSchoolModal, setShowSchoolModal] = useState(false);
 
   useEffect(() => {
     if (defaultTab === 'dash' || !defaultTab) setActiveTab('overview');
-    else if (['branches', 'students', 'integrations', 'finance', 'settings'].includes(defaultTab)) setActiveTab(defaultTab as any);
+    else if (['branches', 'students', 'payroll', 'finance', 'integrations', 'settings'].includes(defaultTab)) setActiveTab(defaultTab as any);
   }, [defaultTab]);
 
   const [transfers, setTransfers] = useState([
@@ -93,7 +91,6 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
 
   const renderStudentManagement = () => {
     const filteredStudents = MOCK_STUDENTS.filter(s =>
-      (selectedSchool === 'all' || s.schoolId === selectedSchool) &&
       (selectedBranch === 'all' || s.branchId === selectedBranch)
     );
 
@@ -106,20 +103,12 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
           </div>
           <div className="flex gap-4">
             <select
-              value={selectedSchool}
-              onChange={(e) => { setSelectedSchool(e.target.value); setSelectedBranch('all'); }}
-              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="all">All Schools</option>
-              {MOCK_SCHOOLS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-            <select
               value={selectedBranch}
               onChange={(e) => setSelectedBranch(e.target.value)}
               className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="all">All Branches</option>
-              {MOCK_SCHOOLS.find(s => s.id === selectedSchool)?.branches?.map(b => (
+              {MOCK_SCHOOLS[0].branches.map(b => (
                 <option key={b.id} value={b.id}>{b.name}</option>
               ))}
             </select>
@@ -169,6 +158,115 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
       </div>
     );
   };
+
+  const renderFeeManagement = () => (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase">Institutional Fee Architecture</h2>
+          <p className="text-sm text-slate-500 italic">Tracking collection success across {MOCK_SCHOOLS[0].branches.length} campus nodes.</p>
+        </div>
+        <div className="flex gap-4">
+          <div className="bg-emerald-50 px-6 py-4 rounded-2xl border border-emerald-100">
+            <p className="text-[8px] font-black text-emerald-600 uppercase tracking-widest leading-none mb-1">Total Collected</p>
+            <p className="text-xl font-black text-emerald-700">${MOCK_STUDENTS.reduce((acc, s) => acc + (s.totalPaid || 0), 0).toLocaleString()}</p>
+          </div>
+          <div className="bg-indigo-50 px-6 py-4 rounded-2xl border border-indigo-100">
+            <p className="text-[8px] font-black text-indigo-600 uppercase tracking-widest leading-none mb-1">Active Students</p>
+            <p className="text-xl font-black text-indigo-700">{MOCK_STUDENTS.length}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+          <h3 className="text-xl font-black text-slate-900 uppercase mb-8">Branch Revenue Shards</h3>
+          <div className="space-y-4">
+            {MOCK_SCHOOLS[0].branches.map(branch => {
+              const branchTotal = MOCK_STUDENTS.filter(s => s.branchId === branch.id).reduce((acc, s) => acc + (s.totalPaid || 0), 0);
+              return (
+                <div key={branch.id} className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-black text-slate-900 uppercase">{branch.name}</div>
+                    <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest">{branch.location} Node</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-black text-slate-900">${branchTotal.toLocaleString()}</div>
+                    <div className="w-24 h-1.5 bg-slate-200 rounded-full mt-2"><div className="h-full bg-emerald-500 rounded-full" style={{ width: '65%' }}></div></div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+          <h3 className="text-xl font-black text-slate-900 uppercase mb-8">Recent Payment Traces</h3>
+          <div className="space-y-4">
+            {MOCK_PAYMENTS.map(pay => (
+              <div key={pay.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm"><DollarSign size={20} /></div>
+                  <div>
+                    <div className="text-xs font-black text-slate-900 uppercase">{pay.studentName}</div>
+                    <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest">{pay.method} • {pay.date}</p>
+                  </div>
+                </div>
+                <div className="text-sm font-black text-slate-900">${pay.amount}</div>
+              </div>
+            ))}
+          </div>
+          <button className="mt-8 w-full py-4 bg-slate-900 text-white font-black rounded-2xl uppercase tracking-[0.2em] text-[10px] hover:bg-indigo-600 transition-all">Audit Full Network Finances</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderPayroll = () => (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase">Global Payroll Shard</h2>
+          <p className="text-sm text-slate-500 italic">Managing disbursements across {MOCK_SCHOOLS[0].branches.length} campus nodes.</p>
+        </div>
+        <button className="px-8 py-4 bg-slate-900 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl hover:bg-indigo-600 transition-all">
+          Execute Network-Wide Payroll
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {MOCK_STAFF.map(staff => {
+          const payroll = MOCK_PAYROLL.find(p => p.staffId === staff.id);
+          return (
+            <div key={staff.id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm group hover:border-indigo-200 transition-all">
+              <div className="flex justify-between items-start mb-6">
+                <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                  <Users size={24} />
+                </div>
+                <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase ${payroll?.status === 'Paid' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                  {payroll?.status || 'Unprocessed'}
+                </span>
+              </div>
+              <h3 className="text-lg font-black text-slate-900 uppercase leading-tight">{staff.name}</h3>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-4">{staff.role} • {MOCK_SCHOOLS[0].branches.find(b => b.id === staff.branchId)?.name}</p>
+
+              <div className="space-y-2 pt-4 border-t border-slate-50">
+                <div className="flex justify-between text-[10px] font-black uppercase">
+                  <span className="text-slate-400">Basic Shard</span>
+                  <span className="text-slate-900">${staff.basicSalary}</span>
+                </div>
+                <div className="flex justify-between text-[10px] font-black uppercase text-indigo-600">
+                  <span>Net Payable</span>
+                  <span>${(payroll?.amount || staff.basicSalary) + (payroll?.allowances || 0) - (payroll?.deductions || 0)}</span>
+                </div>
+              </div>
+              <button className="mt-6 w-full py-3 bg-slate-50 text-slate-900 text-[8px] font-black uppercase rounded-xl hover:bg-indigo-600 hover:text-white transition-all">View Payslip</button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   const renderIntegrations = () => (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -370,12 +468,13 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
 
       <div className="flex gap-1 bg-slate-200/50 p-1.5 rounded-[1.5rem] w-fit overflow-x-auto no-scrollbar">
         {[
-          { id: 'overview', label: 'Network Health', icon: Zap },
-          { id: 'branches', label: 'Branch Nodes', icon: Building2 },
-          { id: 'students', label: 'Student Nexus', icon: GraduationCap },
+          { id: 'overview', label: 'Dashboard', icon: Zap },
+          { id: 'branches', label: 'Branches', icon: Building2 },
+          { id: 'students', label: 'Students', icon: GraduationCap },
+          { id: 'payroll', label: 'Payroll', icon: Briefcase },
+          { id: 'finance', label: 'Fees', icon: DollarSign },
           { id: 'integrations', label: 'API & Gateways', icon: Globe },
-          { id: 'finance', label: 'HQ Finance', icon: DollarSign },
-          { id: 'settings', label: 'Security Console', icon: ShieldAlert },
+          { id: 'settings', label: 'System', icon: ShieldAlert },
         ].map(tab => (
           <button
             key={tab.id} onClick={() => setActiveTab(tab.id as any)}
@@ -390,6 +489,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
       <div className="min-h-[500px]">
         {activeTab === 'overview' && renderOverview()}
         {activeTab === 'students' && renderStudentManagement()}
+        {activeTab === 'payroll' && renderPayroll()}
         {activeTab === 'integrations' && renderIntegrations()}
         {activeTab === 'settings' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in slide-in-from-bottom-4 duration-500">
@@ -399,17 +499,20 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
               </h3>
               <div className="space-y-4">
                 {[
-                  { l: 'Enable Global Result Override', d: 'Allow HQ to edit branch-locked results', v: true },
-                  { l: 'Enforce Branch Sharding', d: 'Isolate data strictly per campus node', v: true },
-                  { l: 'HQ Notification Bypass', d: 'Mute alerts for standard operations', v: false },
-                  { l: 'Automated Log Clearing', d: 'Delete logs older than 24 months', v: true }
+                  { l: 'Global HQ Lockdown', d: 'Freeze all branch operations immediately', v: systemState.emergencyLockdown, action: () => setEmergencyLockdown(!systemState.emergencyLockdown) },
+                  { l: 'Lock Institutional Finances', d: 'Mute all fee and payroll modifications', v: systemState.globalFinancesLocked, action: () => setGlobalFinancesLocked(!systemState.globalFinancesLocked) },
+                  { l: 'Master Grade Analytics Sync', d: 'Force real-time academic node synchronization', v: systemState.forceGradeSync, action: () => setForceGradeSync(!systemState.forceGradeSync) },
+                  { l: 'Automated Log Clearing', d: 'Delete logs older than 24 months', v: systemState.autoBackupEnabled, action: () => setAutoBackupEnabled(!systemState.autoBackupEnabled) }
                 ].map((s, i) => (
-                  <div key={i} className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div key={i} className="flex items-center justify-between p-6 bg-white rounded-2xl border border-slate-100 shadow-sm hover:border-indigo-100 transition-all group">
                     <div className="max-w-xs">
                       <div className="text-xs font-black text-slate-900 uppercase mb-1">{s.l}</div>
                       <p className="text-[10px] text-slate-400 font-bold leading-tight">{s.d}</p>
                     </div>
-                    <div className={`w-12 h-6 rounded-full relative transition-colors cursor-pointer ${s.v ? 'bg-indigo-600' : 'bg-slate-300'}`}>
+                    <div
+                      onClick={s.action}
+                      className={`w-12 h-6 rounded-full relative transition-colors cursor-pointer ${s.v ? 'bg-indigo-600' : 'bg-slate-300'}`}
+                    >
                       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${s.v ? 'right-1' : 'left-1'}`}></div>
                     </div>
                   </div>
@@ -439,39 +542,33 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
           <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex justify-between items-center bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
               <div>
-                <h2 className="text-2xl font-black text-slate-900 uppercase">School Cluster Management</h2>
-                <p className="text-sm text-slate-500 font-medium italic">Overseeing {MOCK_SCHOOLS.length} verified academic institutions.</p>
+                <h2 className="text-2xl font-black text-slate-900 uppercase">Campus Node Orchestration</h2>
+                <p className="text-sm text-slate-500 font-medium italic">Overseeing {MOCK_SCHOOLS[0].branches.length} active campus shards.</p>
               </div>
-              <button
-                onClick={() => setShowSchoolModal(true)}
-                className="px-8 py-4 bg-indigo-600 text-white font-black uppercase tracking-widest text-[10px] rounded-2xl flex items-center gap-3 shadow-xl shadow-indigo-100"
-              >
-                <Plus size={18} /> Register New School
-              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {MOCK_SCHOOLS.map(school => (
-                <div key={school.id} className="bg-white rounded-[2rem] border border-slate-100 p-8 hover:shadow-2xl hover:shadow-slate-200 transition-all group relative overflow-hidden">
+              {MOCK_SCHOOLS[0].branches.map(branch => (
+                <div key={branch.id} className="bg-white rounded-[2rem] border border-slate-100 p-8 hover:shadow-2xl hover:shadow-slate-200 transition-all group relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                     <Building2 size={80} />
                   </div>
                   <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <img src={school.logo} alt={school.name} className="w-8 h-8 rounded-lg object-cover" />
+                    <Building2 size={28} />
                   </div>
-                  <h3 className="text-xl font-black text-slate-900 mb-1 leading-tight">{school.name}</h3>
-                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-6">{school.subscriptionPlan} Plan</p>
+                  <h3 className="text-xl font-black text-slate-900 mb-1 leading-tight">{branch.name}</h3>
+                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-6">{branch.location} Node</p>
                   <div className="space-y-4 border-t border-slate-50 pt-6">
                     <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-black text-slate-400 uppercase">Active Branches</span>
-                      <span className="text-xs font-black text-indigo-600">{school.branches.length} Nodes</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase">Active Shards</span>
+                      <span className="text-xs font-black text-indigo-600">{MOCK_STUDENTS.filter(s => s.branchId === branch.id).length} Students</span>
                     </div>
                   </div>
                   <button
-                    onClick={() => triggerToast(`Assuming proxy control for ${school.name}...`)}
+                    onClick={() => triggerToast(`Assuming proxy control for ${branch.name}...`)}
                     className="mt-8 w-full py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-600 transition-all flex items-center justify-center gap-2"
                   >
-                    Configure Clusters <ArrowRight size={14} />
+                    Sync Terminal <ArrowRight size={14} />
                   </button>
                 </div>
               ))}
@@ -479,70 +576,9 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
           </div>
         )}
 
-        {activeTab === 'finance' && (
-          <div className="bg-white p-12 rounded-[2rem] border border-slate-100 text-center animate-in zoom-in-95 duration-500 shadow-sm">
-            <div className="w-20 h-20 bg-rose-50 text-rose-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
-              <DollarSign size={40} />
-            </div>
-            <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Consolidated Financial Audit</h2>
-            <p className="text-slate-500 max-w-md mx-auto mt-2 italic font-medium">Platform-wide revenue tracking and expense auditing for all branch nodes.</p>
-            <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              {branchData.map(b => (
-                <div key={b.name} className="p-6 bg-slate-50 rounded-2xl border border-slate-100 text-left">
-                  <div className="text-[10px] font-black text-slate-400 uppercase mb-1">{b.name} Cashflow</div>
-                  <div className="text-xl font-black text-slate-900">${(b.revenue / 1000).toFixed(0)}k</div>
-                  <div className="h-1.5 w-full bg-slate-200 rounded-full mt-4">
-                    <div className="h-full bg-indigo-600 rounded-full" style={{ width: '75%' }}></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button className="mt-12 px-10 py-4 bg-slate-900 text-white font-black text-xs rounded-2xl uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-indigo-600 transition-all">Download Network Audit Log</button>
-          </div>
-        )}
+        {activeTab === 'finance' && renderFeeManagement()}
       </div>
 
-      {showSchoolModal && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white/20">
-            <div className="bg-indigo-600 p-10 text-white flex justify-between items-center">
-              <div>
-                <h3 className="text-3xl font-black uppercase tracking-tight leading-none">Initialize School</h3>
-                <p className="text-indigo-200 text-[10px] font-black uppercase tracking-widest mt-2">Core Infrastructure Shard Creation</p>
-              </div>
-              <button onClick={() => setShowSchoolModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><ShieldAlert size={24} /></button>
-            </div>
-            <div className="p-10 space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Institution Name</label>
-                  <input type="text" placeholder="St. Marys Academy..." className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Headquarters Location</label>
-                  <input type="text" placeholder="London, UK..." className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
-                </div>
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4">Subscription Protocol</label>
-                <div className="grid grid-cols-3 gap-4">
-                  {['Basic', 'Pro', 'Enterprise'].map(plan => (
-                    <button key={plan} className={`py-4 rounded-2xl border-2 transition-all font-black uppercase text-[10px] tracking-widest ${plan === 'Enterprise' ? 'border-indigo-600 bg-indigo-50 text-indigo-600' : 'border-slate-100 text-slate-400'}`}>
-                      {plan}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <button
-                onClick={() => { setShowSchoolModal(false); triggerToast('New school shard provisioned successfully.'); }}
-                className="w-full py-5 bg-slate-900 text-white font-black rounded-2xl uppercase tracking-[0.2em] text-xs shadow-2xl shadow-slate-200 hover:bg-indigo-600 transition-all"
-              >
-                Provision Institutional Node
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showToast && (
         <div className="fixed bottom-8 right-8 bg-slate-900 text-white px-8 py-5 rounded-[2rem] shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-right-8 duration-300 z-50 border border-white/10">
