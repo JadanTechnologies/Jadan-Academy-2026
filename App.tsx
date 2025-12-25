@@ -17,6 +17,7 @@ const AppContent: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [activeSchool, setActiveSchool] = useState<School | null>(null);
   const [activeTab, setActiveTab] = useState<string>('dash');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { state: systemState, exitGhostMode } = useSystem();
 
   useEffect(() => {
@@ -103,13 +104,15 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen flex bg-slate-50 overflow-hidden">
-      <div className="no-print w-64 flex-shrink-0">
+      <div className={`no-print flex-shrink-0 transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'w-20' : 'w-72'}`}>
         <Sidebar
           user={currentUser}
           onLogout={handleLogout}
           schoolLogo={activeSchool?.logo}
           activeTab={activeTab}
           onTabChange={setActiveTab}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
       </div>
       <div className="flex-1 flex flex-col min-w-0">

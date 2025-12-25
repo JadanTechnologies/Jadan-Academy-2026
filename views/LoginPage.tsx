@@ -35,6 +35,20 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     }, 800);
   };
 
+  const [checkingAdmission, setCheckingAdmission] = useState(false);
+  const [admissionStatus, setAdmissionStatus] = useState<null | 'pending' | 'offered' | 'rejected'>(null);
+  const [appId, setAppId] = useState('');
+
+  const checkAdmission = () => {
+    setCheckingAdmission(true);
+    setTimeout(() => {
+      if (appId.includes('ADM-OFF')) setAdmissionStatus('offered');
+      else if (appId.includes('ADM-REJ')) setAdmissionStatus('rejected');
+      else setAdmissionStatus('pending');
+      setCheckingAdmission(false);
+    }, 1000);
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 overflow-hidden relative">
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
@@ -71,6 +85,63 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             )}
           </button>
         ))}
+      </div>
+
+      <div className="mt-16 w-full max-w-xl z-10">
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+            <div>
+              <h3 className="text-xl font-black text-white uppercase tracking-tighter">Prospective Shards</h3>
+              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Check Admission Offer Status</p>
+            </div>
+            <div className="flex gap-2 w-full md:w-auto">
+              <input
+                type="text"
+                placeholder="Reference Code (e.g. ADM-OFF-92)"
+                value={appId}
+                onChange={(e) => setAppId(e.target.value)}
+                className="flex-1 md:w-48 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs font-bold focus:outline-none focus:border-indigo-500 transition-all uppercase placeholder:text-slate-600"
+              />
+              <button
+                onClick={checkAdmission}
+                disabled={checkingAdmission || !appId}
+                className="px-6 py-3 bg-white text-slate-900 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-indigo-600 hover:text-white transition-all disabled:opacity-50"
+              >
+                {checkingAdmission ? 'Verifying...' : 'Check Node'}
+              </button>
+            </div>
+          </div>
+
+          {admissionStatus && (
+            <div className="mt-8 p-6 bg-slate-900/50 rounded-2xl border border-white/5 animate-in slide-in-from-top-4 duration-300">
+              {admissionStatus === 'offered' ? (
+                <div className="flex items-center gap-4 text-emerald-400">
+                  <ShieldCheck size={24} />
+                  <div>
+                    <p className="text-xs font-black uppercase">Institutional Offer Detected!</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Visit your branch to shard into enrollment.</p>
+                  </div>
+                </div>
+              ) : admissionStatus === 'rejected' ? (
+                <div className="flex items-center gap-4 text-rose-500">
+                  <Users size={24} />
+                  <div>
+                    <p className="text-xs font-black uppercase">Entry Shard Terminated.</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Institutional capacity reached for this sesson.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-4 text-amber-500">
+                  <Users size={24} className="animate-pulse" />
+                  <div>
+                    <p className="text-xs font-black uppercase">Shard Synchronizing...</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Your application is still in the verification queue.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="mt-12 text-slate-500 text-xs font-black uppercase tracking-widest z-10 opacity-50">

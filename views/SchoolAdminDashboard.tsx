@@ -5,7 +5,9 @@ import {
   Building, BookOpen, Layers, DollarSign, Megaphone, ArrowRight, Truck, Box,
   HeartPulse, ShieldAlert, Library, Calendar, Search, Layout,
   UserPlus, CreditCard, UserCheck, Briefcase, Clock, Printer, BellRing, ReceiptText, ChevronDown, ShieldCheck,
-  ShoppingCart, Fingerprint, FileText, HardDrive, Zap, History, ClipboardList
+  ShoppingCart, Fingerprint, FileText, HardDrive, Zap, History, ClipboardList,
+  Radar, Stethoscope, Wallet, Fuel, Hammer, Trophy, Apple, Dna, Siren, Radio,
+  Monitor, Activity, Database, Wifi, Settings, FileCheck
 } from 'lucide-react';
 import { MOCK_INVENTORY, MOCK_BUS_ROUTES, MOCK_BOOKS, MOCK_SUBJECTS, MOCK_CLASSES, MOCK_FEE_STRUCTURES, MOCK_PAYMENTS } from '../constants';
 import { useSystem } from '../SystemContext';
@@ -18,7 +20,9 @@ interface SchoolAdminDashboardProps {
 
 const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, user, defaultTab }) => {
   const { state: systemState } = useSystem();
-  const [activeTab, setActiveTab] = useState<'dash' | 'results' | 'ops' | 'finance' | 'staff' | 'academics' | 'admissions' | 'procurement' | 'security' | 'discipline'>(defaultTab as any || 'dash');
+  const [activeTab, setActiveTab] = useState<'dash' | 'staff' | 'results' | 'ops' | 'finance' | 'academics' | 'admissions' | 'procurement' | 'security' | 'discipline' | 'fleet' | 'facilities' | 'health' | 'finance_local' | 'exams'>(() => {
+    return (localStorage.getItem(`admin_tab_${user.id}`) as any) || (defaultTab as any) || 'dash';
+  });
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
@@ -31,24 +35,64 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
     if (defaultTab) setActiveTab(defaultTab as any);
   }, [defaultTab]);
 
+  useEffect(() => {
+    localStorage.setItem(`admin_tab_${user.id}`, activeTab);
+  }, [activeTab, user.id]);
+
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  const branchInventory = MOCK_INVENTORY.filter(i => i.branchId === user.branchId);
-  const branchTransport = MOCK_BUS_ROUTES.filter(r => r.branchId === user.branchId);
-  const branchBooks = MOCK_BOOKS.filter(b => b.branchId === user.branchId);
+  const [localInventory, setLocalInventory] = useState<InventoryItem[]>(() => {
+    const saved = localStorage.getItem(`inventory_${user.branchId}`);
+    return saved ? JSON.parse(saved) : MOCK_INVENTORY.filter(i => i.branchId === user.branchId);
+  });
+
+  const [localTransport, setLocalTransport] = useState<BusRoute[]>(() => {
+    const saved = localStorage.getItem(`transport_${user.branchId}`);
+    return saved ? JSON.parse(saved) : MOCK_BUS_ROUTES.filter(r => r.branchId === user.branchId);
+  });
+
+  const [localBooks, setLocalBooks] = useState<LibraryBook[]>(() => {
+    const saved = localStorage.getItem(`books_${user.branchId}`);
+    return saved ? JSON.parse(saved) : MOCK_BOOKS.filter(b => b.branchId === user.branchId);
+  });
+
+  const [localStudents, setLocalStudents] = useState<Student[]>(() => {
+    const saved = localStorage.getItem(`students_${user.branchId}`);
+    if (saved) return JSON.parse(saved);
+    return [
+      { id: 's1', name: 'Alice Thompson', studentId: 'STU-1001', classId: 'c1', arm: 'A', parentEmail: 'p.thompson@email.com', branchId: 'b1', feeStatus: 'Paid' as 'Paid', totalPaid: 1300, role: UserRole.STUDENT, email: 'a@t.com' },
+      { id: 's2', name: 'Bob Wilson', studentId: 'STU-1002', classId: 'c1', arm: 'A', parentEmail: 'b.wilson@email.com', branchId: 'b1', feeStatus: 'Partial' as 'Partial', totalPaid: 600, role: UserRole.STUDENT, email: 'b@w.com' },
+      { id: 's3', name: 'Charlie Dean', studentId: 'STU-1003', classId: 'c2', arm: 'B', parentEmail: 'c.dean@email.com', branchId: 'b1', feeStatus: 'Unpaid' as 'Unpaid', totalPaid: 0, role: UserRole.STUDENT, email: 'c@d.com' },
+    ].filter(s => s.branchId === user.branchId);
+  });
+
+  useEffect(() => {
+    localStorage.setItem(`inventory_${user.branchId}`, JSON.stringify(localInventory));
+  }, [localInventory, user.branchId]);
+
+  useEffect(() => {
+    localStorage.setItem(`transport_${user.branchId}`, JSON.stringify(localTransport));
+  }, [localTransport, user.branchId]);
+
+  useEffect(() => {
+    localStorage.setItem(`books_${user.branchId}`, JSON.stringify(localBooks));
+  }, [localBooks, user.branchId]);
+
+  useEffect(() => {
+    localStorage.setItem(`students_${user.branchId}`, JSON.stringify(localStudents));
+  }, [localStudents, user.branchId]);
+
+  const branchInventory = localInventory;
+  const branchTransport = localTransport;
+  const branchBooks = localBooks;
   const branchClasses = MOCK_CLASSES.filter(c => c.branchId === user.branchId);
   const branchFeeStructures = MOCK_FEE_STRUCTURES.filter(f => f.branchId === user.branchId);
   const branchPayments = MOCK_PAYMENTS.filter(p => p.branchId === user.branchId);
-
-  const branchStudents: Student[] = [
-    { id: 's1', name: 'Alice Thompson', studentId: 'STU-1001', classId: 'c1', arm: 'A', parentEmail: 'p.thompson@email.com', branchId: 'b1', feeStatus: 'Paid' as 'Paid', totalPaid: 1300, role: UserRole.STUDENT, email: 'a@t.com' },
-    { id: 's2', name: 'Bob Wilson', studentId: 'STU-1002', classId: 'c1', arm: 'A', parentEmail: 'b.wilson@email.com', branchId: 'b1', feeStatus: 'Partial' as 'Partial', totalPaid: 600, role: UserRole.STUDENT, email: 'b@w.com' },
-    { id: 's3', name: 'Charlie Dean', studentId: 'STU-1003', classId: 'c2', arm: 'B', parentEmail: 'c.dean@email.com', branchId: 'b1', feeStatus: 'Unpaid' as 'Unpaid', totalPaid: 0, role: UserRole.STUDENT, email: 'c@d.com' },
-  ].filter(s => s.branchId === user.branchId);
+  const branchStudents = localStudents;
 
   const getFeeTotalForClass = (classId: string) => {
     return branchFeeStructures.find(f => f.classId === classId)?.total || 0;
@@ -270,6 +314,289 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
     </div>
   );
 
+  const renderFleet = () => (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase">Fleet & Logistics Nexus</h2>
+          <p className="text-sm text-slate-500 italic">Tracking {branchTransport.length} active routes and fuel orchestration.</p>
+        </div>
+        <div className="flex gap-4">
+          <div className="bg-emerald-50 px-6 py-3 rounded-2xl border border-emerald-100">
+            <p className="text-[8px] font-black text-emerald-600 uppercase mb-1">Fuel Credits</p>
+            <p className="text-lg font-black text-emerald-700">840L</p>
+          </div>
+          <button className="px-8 py-4 bg-indigo-600 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl hover:bg-slate-900 transition-all flex items-center gap-2">
+            <Fuel size={16} /> Bulk Re-Fuel
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+          <div className="p-8 border-b border-slate-50 bg-slate-50/30 font-black text-slate-900 uppercase flex justify-between items-center">
+            Active Fleet Status
+            <span className="text-[10px] font-black text-indigo-600 tracking-widest">Live Shards</span>
+          </div>
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                <th className="px-8 py-4">Vehicle/Driver</th>
+                <th className="px-8 py-4">Status</th>
+                <th className="px-8 py-4">Load</th>
+                <th className="px-8 py-4 text-right">Comm Log</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {branchTransport.map((r, i) => (
+                <tr key={i} className="hover:bg-slate-50/50 transition-all">
+                  <td className="px-8 py-6">
+                    <div className="text-xs font-black text-slate-900 uppercase">{r.routeName}</div>
+                    <div className="text-[10px] text-slate-400 font-bold italic">{r.driverName}</div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <span className="px-2 py-1 bg-emerald-50 text-emerald-600 text-[8px] font-black uppercase rounded-full">In Transit</span>
+                  </td>
+                  <td className="px-8 py-6">
+                    <div className="text-[10px] font-black text-slate-600 mb-1">{((r.occupied / r.capacity) * 100).toFixed(0)}%</div>
+                    <div className="h-1 w-20 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-indigo-500" style={{ width: `${(r.occupied / r.capacity) * 100}%` }}></div>
+                    </div>
+                  </td>
+                  <td className="px-8 py-6 text-right">
+                    <button className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"><Radio size={16} /></button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden flex flex-col">
+          <Siren size={150} className="absolute -top-10 -right-10 opacity-10" />
+          <h3 className="text-2xl font-black mb-4 uppercase tracking-tighter">Emergency Dispatch</h3>
+          <p className="text-slate-400 text-sm mb-8 font-medium italic">HQ-level dispatch override for institutional fleet redirection.</p>
+          <div className="space-y-4 mb-8">
+            <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+              <div className="text-[10px] font-black text-rose-400 uppercase mb-2">Protocol Shard</div>
+              <p className="text-xs text-slate-300 font-medium">Automatic re-routing active for Downtown cluster due to traffic sharding.</p>
+            </div>
+          </div>
+          <button className="mt-auto w-full py-4 bg-rose-600 text-white font-black rounded-2xl uppercase text-[10px] tracking-widest hover:bg-rose-700 transition-all shadow-xl shadow-rose-900/40">Broadcast Alert</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderFacilities = () => (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase flex items-center gap-3">
+            Facility Health & Ops <Hammer className="text-slate-900" />
+          </h2>
+          <p className="text-sm text-slate-500 italic">Institutional asset lifecycle and maintenance orchestration.</p>
+        </div>
+        <button className="px-8 py-4 bg-slate-900 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl hover:bg-indigo-600 transition-all flex items-center gap-2">
+          Add Repair Ticket
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+          <h3 className="text-xl font-black text-slate-900 uppercase mb-8">Asset Diagnostics</h3>
+          <div className="grid grid-cols-2 gap-6">
+            {[
+              { l: 'ICT Infrastructure', v: '92%', c: 'indigo' },
+              { l: 'Lab Equipment', v: '78%', c: 'amber' },
+              { l: 'Power Systems', v: '100%', c: 'emerald' },
+              { l: 'HVAC Nodes', v: '64%', c: 'rose' },
+            ].map((a, i) => (
+              <div key={i} className="p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:border-indigo-200 transition-all">
+                <p className="text-[10px] font-black text-slate-400 uppercase mb-1">{a.l}</p>
+                <div className="flex items-end justify-between">
+                  <p className="text-2xl font-black text-slate-900">{a.v}</p>
+                  <div className={`w-8 h-8 bg-${a.c}-50 text-${a.c}-600 rounded-xl flex items-center justify-center`}><Monitor size={16} /></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-indigo-600 rounded-[2.5rem] p-10 text-white flex flex-col justify-between relative overflow-hidden">
+          <Settings2 size={180} className="absolute -bottom-10 -right-10 opacity-10 rotate-12" />
+          <div>
+            <h3 className="text-3xl font-black uppercase tracking-tighter mb-4">Maintenance Sharding</h3>
+            <p className="text-indigo-100 text-sm font-medium italic mb-8">Predictive scheduling for janitorial and technical intervention nodes.</p>
+            <div className="space-y-4">
+              {[
+                { t: 'Science Lab 2', a: 'Calibration', d: 'In 2 Days' },
+                { t: 'Main Gen-Set', a: 'Oil Shard Change', d: 'In 4 Days' },
+              ].map((s, i) => (
+                <div key={i} className="p-4 bg-white/10 rounded-2xl border border-white/5 flex justify-between items-center">
+                  <div>
+                    <div className="text-[10px] font-black uppercase text-white">{s.t}</div>
+                    <div className="text-[8px] font-black uppercase text-indigo-300">{s.a}</div>
+                  </div>
+                  <span className="text-[10px] font-black text-indigo-400 bg-white px-3 py-1 rounded-full">{s.d}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <button className="mt-8 w-full py-4 bg-white text-indigo-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-50 transition-all">Launch Task Orchestrator</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderHealth = () => (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase flex items-center gap-3">
+            Sickbay & Health Shard <Stethoscope className="text-emerald-600" />
+          </h2>
+          <p className="text-sm text-slate-500 italic">Institutional wellbeing and medical records orchestration.</p>
+        </div>
+        <button className="px-8 py-4 bg-emerald-600 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl hover:bg-slate-900 transition-all flex items-center gap-2">
+          New Incident Log
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+          <div className="p-8 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center">
+            <h3 className="text-xl font-black text-slate-900 uppercase">Active Medical Logs</h3>
+            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Live Shards</span>
+          </div>
+          <div className="p-0">
+            <table className="w-full text-left">
+              <thead className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                <tr>
+                  <th className="px-8 py-4">Student</th>
+                  <th className="px-8 py-4">Complaint</th>
+                  <th className="px-8 py-4">Treated By</th>
+                  <th className="px-8 py-4 text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {[
+                  { n: 'David Okafor', c: 'Mild Fever', t: 'Nurse Sarah', s: 'Observing' },
+                  { n: 'Grace Evans', c: 'Allergy Shard Trigger', t: 'Dr. Mike', s: 'Discharged' },
+                ].map((l, i) => (
+                  <tr key={i} className="hover:bg-slate-50/50 transition-all">
+                    <td className="px-8 py-6 font-bold text-slate-900 text-xs uppercase">{l.n}</td>
+                    <td className="px-8 py-6 text-[10px] font-black text-slate-600 uppercase italic">{l.c}</td>
+                    <td className="px-8 py-6 text-[10px] font-bold text-slate-400 uppercase">{l.t}</td>
+                    <td className="px-8 py-6 text-right">
+                      <span className={`px-2 py-1 rounded-full text-[8px] font-black uppercase ${l.s === 'Observing' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}`}>{l.s}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="bg-emerald-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden flex flex-col">
+          <Dna size={150} className="absolute -top-10 -right-10 opacity-10" />
+          <h3 className="text-2xl font-black mb-4 uppercase tracking-tighter">Bio-Medical Shard</h3>
+          <p className="text-emerald-400 text-sm mb-8 font-medium italic">Aggregated health data across student and staff clusters.</p>
+          <div className="space-y-6">
+            <div>
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-[10px] font-black uppercase text-emerald-300">Medication Sync</span>
+                <span className="text-xs font-black">100% Correct</span>
+              </div>
+              <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-400" style={{ width: '100%' }}></div>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between items-end mb-2">
+                <span className="text-[10px] font-black uppercase text-indigo-300">Vitals Verification</span>
+                <span className="text-xs font-black">Phase 1 Done</span>
+              </div>
+              <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full bg-indigo-400" style={{ width: '65%' }}></div>
+              </div>
+            </div>
+          </div>
+          <button className="mt-8 w-full py-4 bg-white/10 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-emerald-900 transition-all">Health Analytics</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderLocalFinance = () => (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase flex items-center gap-3">
+            Local Treasury & Petty Cash <Wallet className="text-indigo-600" />
+          </h2>
+          <p className="text-sm text-slate-500 italic">Branch-level orchestration of operational expenditure shards.</p>
+        </div>
+        <div className="flex gap-4">
+          <div className="bg-indigo-50 px-6 py-3 rounded-2xl border border-indigo-100">
+            <p className="text-[8px] font-black text-indigo-600 uppercase mb-1">Treasury Balance</p>
+            <p className="text-lg font-black text-indigo-700">₦4,250.00</p>
+          </div>
+          <button className="px-8 py-4 bg-indigo-600 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl hover:bg-slate-900 transition-all flex items-center gap-2">
+            <Plus size={16} /> Fund Requisition
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+          <h3 className="text-xl font-black text-slate-900 uppercase mb-8">Daily Expense Ledger</h3>
+          <div className="space-y-4">
+            {[
+              { i: 'Janitorial Supplies', a: '₦120.00', t: '09:00 AM', s: 'Approved' },
+              { i: 'Lab Reagents Shard', a: '₦350.00', t: '11:30 AM', s: 'Pending' },
+              { i: 'Emergency Bus Maintenance', a: '₦200.00', t: '01:15 PM', s: 'Approved' },
+            ].map((e, idx) => (
+              <div key={idx} className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center group hover:border-indigo-200 transition-all">
+                <div>
+                  <div className="text-xs font-black text-slate-900 uppercase">{e.i}</div>
+                  <div className="text-[8px] text-slate-400 font-bold uppercase">{e.t}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs font-black text-slate-900">{e.a}</div>
+                  <span className={`text-[8px] font-black uppercase ${e.s === 'Approved' ? 'text-emerald-500' : 'text-amber-500'}`}>{e.s}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white flex flex-col justify-between relative overflow-hidden">
+          <Briefcase size={180} className="absolute -bottom-10 -right-10 opacity-5" />
+          <div>
+            <h3 className="text-2xl font-black uppercase tracking-tighter mb-4">PTA & Project Shards</h3>
+            <p className="text-slate-400 text-sm font-medium italic mb-8">Tracking local community-funded project nodes.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                { l: 'Sports Pavilion', p: '85%', t: '₦12,000' },
+                { l: 'Library Shard Expansion', p: '40%', t: '₦5,000' },
+              ].map((p, i) => (
+                <div key={i} className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <div className="text-[10px] font-black uppercase text-indigo-400 mb-1">{p.l}</div>
+                  <div className="text-lg font-black">{p.t}</div>
+                  <div className="h-1 w-full bg-white/5 rounded-full mt-4 overflow-hidden">
+                    <div className="h-full bg-indigo-500" style={{ width: p.p }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <button className="mt-8 py-4 bg-white/10 border border-white/5 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all">Audit Treasury</button>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderAdmissions = () => (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
@@ -313,11 +640,68 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
                       <div className="h-full bg-indigo-500" style={{ width: `${c.p}%` }}></div>
                     </div>
                   </td>
-                  <td className="px-8 py-6 text-right font-mono text-[10px] text-slate-400 font-black">{c.id}</td>
+                  <td className="px-8 py-6 text-right font-black text-slate-400 text-[10px] tracking-widest">{c.id}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden flex flex-col justify-between shadow-2xl">
+          <ShieldCheck size={180} className="absolute -bottom-10 -right-10 opacity-5" />
+          <div>
+            <h3 className="text-3xl font-black uppercase tracking-tighter mb-4">Offer Orchestrator</h3>
+            <p className="text-indigo-400 text-sm font-medium italic mb-8">Generate and dispatch official Admission Offer shards.</p>
+            <div className="space-y-4">
+              {[
+                { n: 'Dispatch Formal Offer', i: FileCheck, desc: 'Institutional watermark applied' },
+                { n: 'Review Acceptance Log', i: History, desc: 'Real-time sync node' },
+              ].map((o, i) => (
+                <button key={i} className="w-full p-6 bg-white/5 border border-white/5 rounded-[2rem] text-left hover:bg-white/10 transition-all flex items-center gap-6 group">
+                  <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform"><o.i size={24} /></div>
+                  <div>
+                    <p className="font-black uppercase tracking-tight">{o.n}</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase">{o.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mt-8 flex gap-4">
+            <button className="flex-1 py-4 bg-indigo-600 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-white hover:text-slate-900 transition-all">New Admission Portal</button>
+            <button className="flex-1 py-4 border border-white/10 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-white/10 transition-all">Audit Entries</button>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest pl-4">Active Offer Shards</h3>
+          {[
+            { n: 'Chima Obi', s: 'Awaiting Response', d: 'Oct 22', r: 'ADM-OFF-92' },
+            { n: 'Blessing Ade', s: 'Offer Viewed', d: 'Oct 24', r: 'ADM-OFF-94' },
+          ].map((o, i) => (
+            <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 flex justify-between items-center group hover:border-indigo-200 transition-all shadow-sm">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-black">?</div>
+                <div>
+                  <h4 className="font-black text-slate-900 uppercase text-xs">{o.n}</h4>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{o.r}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className={`px-4 py-2 rounded-full text-[8px] font-black uppercase ${o.s === 'Offer Viewed' ? 'bg-indigo-50 text-indigo-600' : 'bg-amber-50 text-amber-600'}`}>{o.s}</span>
+                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-2">Expiry: {o.d}</p>
+              </div>
+            </div>
+          ))}
+          <div className="bg-indigo-50 p-6 rounded-[2rem] border border-indigo-100 flex items-center gap-6">
+            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm"><Activity size={20} /></div>
+            <div>
+              <p className="text-xs font-black text-indigo-900 uppercase">Institutional Conversion</p>
+              <p className="text-[10px] font-medium text-indigo-600 italic">82% of sent offer nodes have successfully sharded into enrollment.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -342,8 +726,8 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
           <h3 className="text-xl font-black uppercase mb-8">Asset Requests</h3>
           <div className="space-y-4">
             {[
-              { item: 'Chemical Reagents (Set B)', cost: '$1,200', status: 'Awaiting HQ Approval' },
-              { item: 'Bus Spare Parts (Engine)', cost: '$850', status: 'Verified' },
+              { item: 'Chemical Reagents (Set B)', cost: '₦1,200', status: 'Awaiting HQ Approval' },
+              { item: 'Bus Spare Parts (Engine)', cost: '₦850', status: 'Verified' },
             ].map((r, i) => (
               <div key={i} className="p-6 bg-white/5 rounded-3xl border border-white/10 flex justify-between items-center">
                 <div>
@@ -443,6 +827,75 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
             </div>
           </div>
           <button className="mt-auto w-full py-4 bg-white/10 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-all">Force Re-Sync</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderExams = () => (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 uppercase flex items-center gap-3">
+            Exam Orchestrator <Layers className="text-rose-600" />
+          </h2>
+          <p className="text-sm text-slate-500 italic">Global scheduling, security protocols, and result shard processing.</p>
+        </div>
+        <button className="px-8 py-4 bg-rose-600 text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl hover:bg-slate-900 transition-all flex items-center gap-2">
+          <Plus size={16} /> Schedule Session
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest pl-2">Live Session Nodes</h3>
+          {[
+            { t: 'Unified Grade 10 Mid-Term', b: 'Main Campus', s: 'Active', p: '88%' },
+            { t: 'Staff Proficiency Assessment', b: 'ICT Lab', s: 'Pending Sync', p: '0%' },
+          ].map((s, i) => (
+            <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 flex justify-between items-center group hover:border-rose-200 transition-all">
+              <div>
+                <h4 className="text-xl font-black text-slate-900 uppercase leading-tight mb-1">{s.t}</h4>
+                <div className="flex gap-4">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">{s.b} Node</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">{s.p} Completion</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className={`px-4 py-2 rounded-full text-[8px] font-black uppercase ${s.s === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                  {s.s}
+                </span>
+                <button className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-rose-600 transition-all"><Settings size={18} /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-8">
+          <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden">
+            <ShieldCheck size={120} className="absolute -bottom-5 -right-5 opacity-10" />
+            <h3 className="text-xl font-black uppercase mb-6">Security Firewall</h3>
+            <div className="space-y-4">
+              {[
+                { l: 'IP Whitelisting', v: 'Active', s: true },
+                { l: 'Identity Sync', v: 'Enforced', s: true },
+                { l: 'Plagiarism Shard', v: 'Scanning', s: true },
+              ].map((f, i) => (
+                <div key={i} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                  <span className="text-[10px] font-black uppercase text-slate-400">{f.l}</span>
+                  <span className="text-[8px] font-black uppercase text-emerald-400">{f.v}</span>
+                </div>
+              ))}
+            </div>
+            <button className="mt-6 w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Update Protocols</button>
+          </div>
+
+          <div className="bg-rose-600 rounded-[2.5rem] p-8 text-white">
+            <h4 className="text-xl font-black uppercase mb-2">Automated Grading</h4>
+            <p className="text-rose-100 text-[10px] font-medium italic mb-6">Scripted grading shards for objective paper nodes.</p>
+            <div className="text-4xl font-black mb-6">24,500 <span className="text-sm font-normal">Processed</span></div>
+            <button className="w-full py-3 bg-white text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all">View Grade Map</button>
+          </div>
         </div>
       </div>
     </div>
@@ -581,16 +1034,21 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
 
       <div className="flex gap-1 bg-slate-200/50 p-1.5 rounded-[1.5rem] w-fit overflow-x-auto no-scrollbar">
         {[
-          { id: 'dash', label: 'Dashboard', icon: Layout },
-          { id: 'results', label: 'Verify Results', icon: ClipboardCheck },
-          { id: 'ops', label: 'Operations', icon: Settings2 },
-          { id: 'finance', label: 'Fees', icon: DollarSign },
+          { id: 'dash', label: 'Overview', icon: Layout },
+          { id: 'fleet', label: 'Fleet & Logistics', icon: Truck },
+          { id: 'facilities', label: 'Facilities', icon: Hammer },
+          { id: 'exams', label: 'Exams', icon: Layers },
+          { id: 'health', label: 'Sickbay', icon: Stethoscope },
+          { id: 'finance_local', label: 'Local Treasury', icon: Wallet },
           { id: 'staff', label: 'Staff Hub', icon: Users },
-          { id: 'academics', label: 'Curriculum', icon: BookOpen },
-          { id: 'admissions', label: 'Admissions', icon: Fingerprint },
+          { id: 'results', label: 'Results Approval', icon: ClipboardCheck },
+          { id: 'academics', label: 'Academics', icon: BookOpen },
+          { id: 'finance', label: 'School fees', icon: DollarSign },
+          { id: 'ops', label: 'Branch Logs', icon: Layers },
+          { id: 'admissions', label: 'Admissions', icon: UserPlus },
           { id: 'procurement', label: 'Procurement', icon: ShoppingCart },
           { id: 'security', label: 'Security', icon: ShieldCheck },
-          { id: 'discipline', label: 'Legacy', icon: ClipboardList },
+          { id: 'discipline', label: 'Events & Discipline', icon: Zap },
         ].map(tab => (
           <button
             key={tab.id} onClick={() => setActiveTab(tab.id as any)}
@@ -605,16 +1063,45 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
       <div className="min-h-[500px]">
         {activeTab === 'dash' && (
           <div className="space-y-8 animate-in fade-in duration-500">
+            {/* Campus Command HUD */}
+            <div className="bg-slate-900 rounded-[3rem] p-10 relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl shadow-indigo-200">
+              <div className="absolute top-0 right-0 p-12 opacity-5 rotate-12"><Activity size={200} /></div>
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="px-3 py-1 bg-indigo-500 text-white rounded-full text-[8px] font-black uppercase tracking-widest">Branch Node Active</span>
+                  <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-full text-[8px] font-black uppercase tracking-widest">Sync Priority: High</span>
+                </div>
+                <h2 className="text-4xl font-black text-white uppercase tracking-tighter mb-2">{user.branchId} Campus Terminal</h2>
+                <p className="text-slate-400 text-sm italic font-medium">Orchestrating local educational shards with HQ synchronization.</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 relative z-10 w-full md:w-auto">
+                {[
+                  { l: 'Local Uptime', v: '100%', i: Zap },
+                  { l: 'Active Shards', v: '840', i: Database },
+                  { l: 'Staff Pulse', v: 'Stable', i: HeartPulse },
+                  { l: 'Network Latency', v: '8ms', i: Wifi },
+                ].map((h, i) => (
+                  <div key={i} className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center gap-3">
+                    <h.i size={16} className="text-indigo-400" />
+                    <div>
+                      <p className="text-[8px] font-black text-slate-500 uppercase leading-none mb-1">{h.l}</p>
+                      <p className="text-xs font-black text-white leading-none">{h.v}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Stats Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { l: 'Total Revenue', v: '$420,000', i: DollarSign, c: 'indigo' },
-                { l: 'Pending Audits', v: '18 Records', i: ShieldCheck, c: 'amber' },
-                { l: 'Asset Health', v: '92% Good', i: Box, c: 'emerald' },
-                { l: 'Guest Logs', v: '12 Today', i: Users, c: 'rose' },
+                { l: 'Total Revenue', v: '₦420,000', i: DollarSign, c: 'indigo' },
+                { l: 'Academic Health', v: '88% Shard', i: GraduationCap, c: 'emerald' },
+                { l: 'Asset Vitality', v: '92% Good', i: Hammer, i2: Box, c: 'amber' },
+                { l: 'Incident Logs', v: '2 Today', i: Siren, c: 'rose' },
               ].map((s, i) => (
-                <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
-                  <div className={`w-12 h-12 bg-${s.c}-50 text-${s.c}-600 rounded-2xl flex items-center justify-center`}><s.i size={24} /></div>
+                <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-indigo-200 transition-all">
+                  <div className={`w-12 h-12 bg-${s.c}-50 text-${s.c}-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}><s.i size={24} /></div>
                   <div>
                     <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1">{s.l}</div>
                     <div className="text-lg font-black text-slate-900">{s.v}</div>
@@ -779,6 +1266,11 @@ const SchoolAdminDashboard: React.FC<SchoolAdminDashboardProps> = ({ school, use
         {activeTab === 'procurement' && renderProcurement()}
         {activeTab === 'security' && renderSecurity()}
         {activeTab === 'discipline' && renderDiscipline()}
+        {activeTab === 'exams' && renderExams()}
+        {activeTab === 'fleet' && renderFleet()}
+        {activeTab === 'facilities' && renderFacilities()}
+        {activeTab === 'health' && renderHealth()}
+        {activeTab === 'finance_local' && renderLocalFinance()}
       </div>
 
       {showToast && (

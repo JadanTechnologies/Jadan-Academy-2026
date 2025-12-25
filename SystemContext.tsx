@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { User, UserRole } from './types';
 
 interface SystemState {
@@ -26,16 +26,23 @@ interface SystemContextType {
 const SystemContext = createContext<SystemContextType | undefined>(undefined);
 
 export const SystemProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [state, setState] = useState<SystemState>({
-        globalFinancesLocked: false,
-        forceGradeSync: true,
-        emergencyLockdown: false,
-        autoBackupEnabled: true,
-        ghostMode: {
-            isActive: false,
-            targetBranchId: null,
-        },
+    const [state, setState] = useState<SystemState>(() => {
+        const saved = localStorage.getItem('system_state');
+        return saved ? JSON.parse(saved) : {
+            globalFinancesLocked: false,
+            forceGradeSync: true,
+            emergencyLockdown: false,
+            autoBackupEnabled: true,
+            ghostMode: {
+                isActive: false,
+                targetBranchId: null,
+            },
+        };
     });
+
+    useEffect(() => {
+        localStorage.setItem('system_state', JSON.stringify(state));
+    }, [state]);
 
     const setGlobalFinancesLocked = (locked: boolean) =>
         setState(prev => ({ ...prev, globalFinancesLocked: locked }));

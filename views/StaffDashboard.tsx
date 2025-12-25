@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, UserRole, PaymentRecord, InventoryItem, LibraryBook, VisitorLog } from '../types';
 import {
     DollarSign, BookOpen, Users, Layout, Search, Plus,
@@ -12,15 +12,21 @@ interface StaffDashboardProps {
 }
 
 const StaffDashboard: React.FC<StaffDashboardProps> = ({ user }) => {
-    const [activeTab, setActiveTab] = useState('overview');
+    const [activeTab, setActiveTab] = useState(() => {
+        return (localStorage.getItem(`staff_tab_${user.id}`)) || 'overview';
+    });
+
+    useEffect(() => {
+        localStorage.setItem(`staff_tab_${user.id}`, activeTab);
+    }, [activeTab, user.id]);
 
     const renderBursar = () => (
         <div className="space-y-8 animate-in fade-in duration-500">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
-                    { l: 'Daily Collection', v: '$4,200', i: DollarSign, c: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { l: 'Pending Payroll', v: '45 Staff', i: Users, c: 'text-indigo-600', bg: 'bg-indigo-50' },
-                    { l: 'Operating Expenses', v: '$1,850', i: TrendingUp, c: 'text-rose-600', bg: 'bg-rose-50' },
+                    { l: 'Daily Collection', v: '₦4,200', i: DollarSign, c: 'text-emerald-600', bg: 'bg-emerald-50' },
+                    { l: 'Outstanding Fees', v: '₦12.4K', i: Clock, c: 'text-amber-600', bg: 'bg-amber-50' },
+                    { l: 'Operating Expenses', v: '₦1,850', i: TrendingUp, c: 'text-rose-600', bg: 'bg-rose-50' },
                 ].map((s, i) => (
                     <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-6">
                         <div className={`w-16 h-16 ${s.bg} ${s.c} rounded-2xl flex items-center justify-center`}><s.i size={32} /></div>
@@ -55,7 +61,7 @@ const StaffDashboard: React.FC<StaffDashboardProps> = ({ user }) => {
                                 <td className="px-8 py-6 font-bold text-slate-900 uppercase">{p.studentName}</td>
                                 <td className="px-8 py-6 text-slate-500 font-medium">School Fees</td>
                                 <td className="px-8 py-6 text-slate-500 font-medium">{p.date}</td>
-                                <td className="px-8 py-6 font-black text-emerald-600">${p.amount.toLocaleString()}</td>
+                                <td className="px-8 py-6 font-black text-emerald-600">₦{p.amount.toLocaleString()}</td>
                                 <td className="px-8 py-6 text-right">
                                     <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-black uppercase">Cleared</span>
                                 </td>
