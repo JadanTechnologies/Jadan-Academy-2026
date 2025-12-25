@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MOCK_SCHOOLS } from '../constants';
+import { MOCK_SCHOOLS, MOCK_STUDENTS, MOCK_PAYMENT_PROVIDERS, MOCK_COMM_PROVIDERS } from '../constants';
 import {
   Building2,
   Plus,
@@ -18,9 +18,19 @@ import {
   Server,
   Zap,
   Eye,
-  Layout
+  Layout,
+  Globe,
+  Mail,
+  MessageSquare,
+  Bell,
+  CreditCard,
+  Trash2,
+  Edit,
+  Filter,
+  GraduationCap,
+  Briefcase
 } from 'lucide-react';
-import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie } from 'recharts';
 
 interface SuperAdminDashboardProps {
   defaultTab?: string;
@@ -37,13 +47,16 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
     setEmergencyLockdown,
     setAutoBackupEnabled
   } = useSystem();
-  const [activeTab, setActiveTab] = useState<'overview' | 'branches' | 'command' | 'finance' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'branches' | 'students' | 'integrations' | 'finance' | 'settings'>('overview');
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [selectedSchool, setSelectedSchool] = useState<string>('all');
+  const [selectedBranch, setSelectedBranch] = useState<string>('all');
+  const [showSchoolModal, setShowSchoolModal] = useState(false);
 
   useEffect(() => {
     if (defaultTab === 'dash' || !defaultTab) setActiveTab('overview');
-    else if (['branches', 'command', 'finance', 'settings'].includes(defaultTab)) setActiveTab(defaultTab as any);
+    else if (['branches', 'students', 'integrations', 'finance', 'settings'].includes(defaultTab)) setActiveTab(defaultTab as any);
   }, [defaultTab]);
 
   const [transfers, setTransfers] = useState([
@@ -79,42 +92,13 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
   const renderHQCommand = () => (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row gap-6">
-        {/* Ghosting Terminal */}
-        <div className="flex-1 bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-            <Users size={80} />
-          </div>
-          <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">HQ Proxy Terminal</h2>
-          <p className="text-sm text-slate-500 font-medium mb-8">Assume full administrative control of any branch node (Ghost Mode).</p>
-
-          <div className="grid grid-cols-1 gap-4">
-            {branchData.map(b => (
-              <div key={b.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 items-center">
-                <div>
-                  <div className="font-black text-slate-900 text-sm uppercase">{b.name}</div>
-                  <div className="text-[10px] text-slate-400 font-bold uppercase">{b.id} Node</div>
-                </div>
-                <button
-                  onClick={() => {
-                    triggerToast(`Ghosting initialized for ${b.name}...`);
-                    enterGhostMode(b.id);
-                  }}
-                  className="px-4 py-2 bg-indigo-600 text-white font-black text-[10px] uppercase rounded-xl hover:bg-slate-900 transition-all flex items-center gap-2"
-                >
-                  <Eye size={14} /> Enter Ghost Mode
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Global Security Override */}
-        <div className="w-full md:w-96 bg-slate-900 p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden">
+        <div className="flex-1 bg-slate-900 p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden">
           <ShieldAlert size={120} className="absolute -bottom-10 -right-10 opacity-10" />
           <h2 className="text-xl font-black uppercase mb-4">Master Overrides</h2>
           <p className="text-xs text-slate-400 mb-8 font-medium italic">Instant protocol changes for the entire organizational network.</p>
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
               { l: 'Lock Global Finances', d: 'Freeze all branch transactions', v: systemState.globalFinancesLocked, fn: setGlobalFinancesLocked },
               { l: 'Force Sync Results', d: 'Bypass teacher verification delays', v: systemState.forceGradeSync, fn: setForceGradeSync },
@@ -174,41 +158,222 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
     </div>
   );
 
+  const renderStudentManagement = () => {
+    const filteredStudents = MOCK_STUDENTS.filter(s =>
+      (selectedSchool === 'all' || s.schoolId === selectedSchool) &&
+      (selectedBranch === 'all' || s.branchId === selectedBranch)
+    );
+
+    return (
+      <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+          <div>
+            <h2 className="text-2xl font-black text-slate-900 uppercase">Universal Student Registry</h2>
+            <p className="text-sm text-slate-500 font-medium italic">Cross-indexing {MOCK_STUDENTS.length} active shards across the network.</p>
+          </div>
+          <div className="flex gap-4">
+            <select
+              value={selectedSchool}
+              onChange={(e) => { setSelectedSchool(e.target.value); setSelectedBranch('all'); }}
+              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="all">All Schools</option>
+              {MOCK_SCHOOLS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+            <select
+              value={selectedBranch}
+              onChange={(e) => setSelectedBranch(e.target.value)}
+              className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="all">All Branches</option>
+              {MOCK_SCHOOLS.find(s => s.id === selectedSchool)?.branches.map(b => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                <th className="px-8 py-5">Student Identity</th>
+                <th className="px-8 py-5">School/Branch</th>
+                <th className="px-8 py-5 text-center">Fee Status</th>
+                <th className="px-8 py-5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {filteredStudents.map(student => (
+                <tr key={student.id} className="hover:bg-slate-50/50 transition-all">
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 font-black">{student.name.charAt(0)}</div>
+                      <div>
+                        <div className="text-sm font-bold text-slate-900 uppercase">{student.name}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">{student.studentId}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <p className="text-xs font-black text-slate-700 uppercase">{MOCK_SCHOOLS.find(s => s.id === student.schoolId)?.name}</p>
+                    <p className="text-[10px] text-slate-400 font-medium uppercase italic">{student.branchId}</p>
+                  </td>
+                  <td className="px-8 py-6 text-center">
+                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${student.feeStatus === 'Paid' ? 'bg-emerald-50 text-emerald-600' :
+                      student.feeStatus === 'Partial' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
+                      }`}>{student.feeStatus}</span>
+                  </td>
+                  <td className="px-8 py-6 text-right">
+                    <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"><Edit size={16} /></button>
+                    <button className="p-2 text-slate-400 hover:text-rose-600 transition-colors"><Trash2 size={16} /></button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  const renderIntegrations = () => (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3"><CreditCard className="text-indigo-600" /> Payment Gateways</h3>
+            <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase">5 Shards Active</span>
+          </div>
+          <div className="space-y-4">
+            {MOCK_PAYMENT_PROVIDERS.map(p => (
+              <div key={p.id} className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex items-center justify-between group hover:border-indigo-200 transition-all">
+                <div className="flex items-center gap-4">
+                  <img src={p.logo} alt={p.name} className="w-10 h-10 object-contain" />
+                  <div>
+                    <div className="text-sm font-black text-slate-900 lowercase">{p.name}</div>
+                    <div className="text-[10px] text-slate-400 font-bold uppercase italic">Auto-Sync Enabled</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-4 rounded-full relative cursor-pointer transition-colors ${p.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                    <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${p.isActive ? 'right-0.5' : 'left-0.5'}`}></div>
+                  </div>
+                  <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"><Settings size={16} /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-8 flex items-center gap-3"><Globe className="text-blue-600" /> Communication Shards</h3>
+            <div className="space-y-4">
+              {MOCK_COMM_PROVIDERS.map(c => (
+                <div key={c.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400">
+                      {c.type === 'Email' ? <Mail size={20} /> : c.type === 'SMS' ? <MessageSquare size={20} /> : <Bell size={20} />}
+                    </div>
+                    <div>
+                      <div className="text-xs font-black text-slate-900 uppercase">{c.name}</div>
+                      <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest">{c.provider} Terminal</p>
+                    </div>
+                  </div>
+                  <div className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase ${c.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                    {c.isActive ? 'Connected' : 'Offline'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-indigo-600 p-8 rounded-[2.5rem] text-white relative overflow-hidden flex items-center justify-between shadow-xl shadow-indigo-100">
+            <Database size={80} className="absolute -bottom-5 -right-5 opacity-10" />
+            <div className="relative z-10">
+              <h4 className="text-lg font-black uppercase mb-1">Custom API Endpoint</h4>
+              <p className="text-xs text-indigo-100 italic opacity-80">Sync your school data with 3rd party ERPs.</p>
+            </div>
+            <button className="px-6 py-3 bg-white text-indigo-600 font-black rounded-xl text-[10px] uppercase shadow-lg">Generate Token</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderGlobalAudit = () => (
+    <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm mt-8">
+      <div className="flex justify-between items-center mb-8">
+        <h3 className="text-xl font-black text-slate-900 uppercase">System-Wide Audit Aggregator</h3>
+        <button className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition-all">
+          <History size={14} /> Full Log Analysis
+        </button>
+      </div>
+      <div className="space-y-4">
+        {[
+          { u: 'HQ-Admin-01', a: 'Modified Global Tax Shard for s1-Node', t: '5 mins ago', s: 'Secure' },
+          { u: 'Branch-Admin-b2', a: 'Initialized Mass Transfer Order TX-9904', t: '12 mins ago', s: 'Verified' },
+          { u: 'System-Auto', a: 'Hourly Distrubuted Backup (b1, b4) Completed', t: '1 hour ago', s: 'Verified' },
+          { u: 'HQ-Admin-01', a: 'Added Resend API Key to Comm Shard', t: '2 hours ago', s: 'Security Alert' },
+          { u: 'Ghost-Proxy', a: 'Access assuming b1 control for Audit', t: '3 hours ago', s: 'Verified' }
+        ].map((log, i) => (
+          <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:bg-white hover:border-indigo-100 transition-all">
+            <div className="flex items-center gap-4">
+              <div className={`w-2 h-2 rounded-full ${log.s === 'Security Alert' ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`}></div>
+              <div>
+                <div className="text-sm font-bold text-slate-900">{log.u}</div>
+                <p className="text-[10px] text-slate-500 font-medium lowercase">{log.a}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] font-black uppercase text-slate-400">{log.t}</div>
+              <div className="text-[8px] font-black text-slate-300 uppercase italic leading-none">{log.s} Trace</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   const renderOverview = () => (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: 'Network Nodes', value: '3 Branches', icon: Server, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-          { label: 'Global Enrollment', value: '1,280', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: 'System Uptime', value: '99.98%', icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50' },
-          { label: 'Monthly Revenue', value: '$310k', icon: DollarSign, color: 'text-rose-600', bg: 'bg-rose-50' },
+          { label: 'Network Nodes', value: `${MOCK_SCHOOLS.reduce((acc, s) => acc + s.branches.length, 0)} Clusters`, icon: Server, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+          { label: 'Global Enrollment', value: '1,280 Students', icon: GraduationCap, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'Cloud Uptime', value: '99.98%', icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50' },
+          { label: 'Consolidated Revenue', value: '$310,000', icon: DollarSign, color: 'text-rose-600', bg: 'bg-rose-50' },
         ].map((stat, i) => (
-          <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
-            <div className={`w-14 h-14 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center`}>
+          <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 hover:scale-[1.02] transition-transform cursor-pointer">
+            <div className={`w-14 h-14 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center shadow-inner`}>
               <stat.icon size={28} />
             </div>
             <div>
               <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mb-1">{stat.label}</div>
-              <div className="text-2xl font-black text-slate-900">{stat.value}</div>
+              <div className="text-xl font-black text-slate-900 tracking-tight">{stat.value}</div>
             </div>
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8">
+        <div className="lg:col-span-2 bg-white rounded-[2rem] border border-slate-100 shadow-sm p-8 flex flex-col">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Node Performance Index</h2>
-              <p className="text-sm text-slate-500 font-medium italic">Academic success rate per branch node</p>
+              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Node Success Latency</h2>
+              <p className="text-sm text-slate-500 font-medium italic">Academic success rate indexed per branch cluster.</p>
             </div>
-            <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"><Settings size={20} /></button>
+            <div className="flex gap-2">
+              <button className="px-4 py-2 bg-slate-50 text-[10px] font-black uppercase rounded-lg border border-slate-100">Daily</button>
+              <button className="px-4 py-2 bg-indigo-600 text-white text-[10px] font-black uppercase rounded-lg">Monthly</button>
+            </div>
           </div>
-          <div className="h-[300px]">
+          <div className="h-[250px] mt-auto">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={branchData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 700 }} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} />
                 <YAxis hide />
                 <Tooltip
                   cursor={{ fill: '#f8fafc' }}
@@ -224,26 +389,28 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
           </div>
         </div>
 
-        <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden flex flex-col h-full shadow-2xl shadow-indigo-900/20">
+        <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden flex flex-col h-full shadow-2xl shadow-indigo-900/40">
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <Megaphone size={120} />
           </div>
-          <h3 className="text-2xl font-black mb-2 leading-tight">HQ Broadcasting</h3>
-          <p className="text-slate-400 text-sm font-medium mb-8">Send high-priority directives to all campus administrators instantly.</p>
+          <h3 className="text-2xl font-black mb-2 leading-tight uppercase tracking-tighter">HQ Directives</h3>
+          <p className="text-slate-400 text-sm font-medium mb-8 italic">Broadcast high-priority instructions to all verified campus nodes.</p>
 
           <div className="space-y-4 mb-8">
-            <input type="text" placeholder="Directive Subject..." className="w-full bg-white/10 border-none rounded-xl p-4 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
-            <textarea placeholder="Write directive details..." className="w-full bg-white/10 border-none rounded-xl p-4 text-sm h-32 resize-none focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
+            <input type="text" placeholder="Directive Subject..." className="w-full bg-white/5 border border-white/5 rounded-xl p-4 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
+            <textarea placeholder="Write directive details..." className="w-full bg-white/5 border border-white/5 rounded-xl p-4 text-sm h-32 resize-none focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
           </div>
 
           <button
             onClick={() => triggerToast('Global directive broadcasted!')}
-            className="mt-auto w-full py-4 bg-indigo-600 text-white font-black rounded-2xl uppercase tracking-[0.2em] text-xs hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-950"
+            className="mt-auto w-full py-4 bg-indigo-600 text-white font-black rounded-2xl uppercase tracking-[0.2em] text-[10px] hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-950"
           >
-            Dispatch to All Nodes
+            Initialize Network Broadcast
           </button>
         </div>
       </div>
+
+      {renderGlobalAudit()}
     </div>
   );
 
@@ -272,7 +439,8 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
         {[
           { id: 'overview', label: 'Network Health', icon: Zap },
           { id: 'branches', label: 'Branch Nodes', icon: Building2 },
-          { id: 'command', label: 'HQ Command Hub', icon: Layout },
+          { id: 'students', label: 'Student Nexus', icon: GraduationCap },
+          { id: 'integrations', label: 'API & Gateways', icon: Globe },
           { id: 'finance', label: 'HQ Finance', icon: DollarSign },
           { id: 'settings', label: 'Security Console', icon: ShieldAlert },
         ].map(tab => (
@@ -288,37 +456,50 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
 
       <div className="min-h-[500px]">
         {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'command' && renderHQCommand()}
+        {activeTab === 'students' && renderStudentManagement()}
+        {activeTab === 'integrations' && renderIntegrations()}
+        {activeTab === 'settings' && renderHQCommand()}
         {activeTab === 'branches' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in duration-500">
-            {branchData.map(branch => (
-              <div key={branch.id} className="bg-white rounded-[2rem] border border-slate-100 p-8 hover:shadow-2xl hover:shadow-slate-200 transition-all group relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <Building2 size={80} />
-                </div>
-                <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <Server size={28} />
-                </div>
-                <h3 className="text-xl font-black text-slate-900 mb-1">{branch.name}</h3>
-                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-6">Location: Global Node {branch.id}</p>
-                <div className="space-y-4 border-t border-slate-50 pt-6">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-slate-400 uppercase">Latency</span>
-                    <span className="text-xs font-black text-emerald-500">{branch.latency}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-slate-400 uppercase">Total Staff</span>
-                    <span className="text-xs font-black text-slate-900">{branch.staff} Members</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => triggerToast(`Connecting to ${branch.name} internal terminal...`)}
-                  className="mt-8 w-full py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-600 transition-all flex items-center justify-center gap-2"
-                >
-                  Inspect Branch <ArrowRight size={14} />
-                </button>
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="flex justify-between items-center bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+              <div>
+                <h2 className="text-2xl font-black text-slate-900 uppercase">School Cluster Management</h2>
+                <p className="text-sm text-slate-500 font-medium italic">Overseeing {MOCK_SCHOOLS.length} verified academic institutions.</p>
               </div>
-            ))}
+              <button
+                onClick={() => setShowSchoolModal(true)}
+                className="px-8 py-4 bg-indigo-600 text-white font-black uppercase tracking-widest text-[10px] rounded-2xl flex items-center gap-3 shadow-xl shadow-indigo-100"
+              >
+                <Plus size={18} /> Register New School
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {MOCK_SCHOOLS.map(school => (
+                <div key={school.id} className="bg-white rounded-[2rem] border border-slate-100 p-8 hover:shadow-2xl hover:shadow-slate-200 transition-all group relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <Building2 size={80} />
+                  </div>
+                  <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <img src={school.logo} alt={school.name} className="w-8 h-8 rounded-lg object-cover" />
+                  </div>
+                  <h3 className="text-xl font-black text-slate-900 mb-1 leading-tight">{school.name}</h3>
+                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-6">{school.subscriptionPlan} Plan</p>
+                  <div className="space-y-4 border-t border-slate-50 pt-6">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-black text-slate-400 uppercase">Active Branches</span>
+                      <span className="text-xs font-black text-indigo-600">{school.branches.length} Nodes</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => triggerToast(`Assuming proxy control for ${school.name}...`)}
+                    className="mt-8 w-full py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-600 transition-all flex items-center justify-center gap-2"
+                  >
+                    Configure Clusters <ArrowRight size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -388,6 +569,48 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ defaultTab })
           </div>
         )}
       </div>
+
+      {showSchoolModal && (
+        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white/20">
+            <div className="bg-indigo-600 p-10 text-white flex justify-between items-center">
+              <div>
+                <h3 className="text-3xl font-black uppercase tracking-tight leading-none">Initialize School</h3>
+                <p className="text-indigo-200 text-[10px] font-black uppercase tracking-widest mt-2">Core Infrastructure Shard Creation</p>
+              </div>
+              <button onClick={() => setShowSchoolModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><ShieldAlert size={24} /></button>
+            </div>
+            <div className="p-10 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Institution Name</label>
+                  <input type="text" placeholder="St. Marys Academy..." className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Headquarters Location</label>
+                  <input type="text" placeholder="London, UK..." className="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none" />
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4">Subscription Protocol</label>
+                <div className="grid grid-cols-3 gap-4">
+                  {['Basic', 'Pro', 'Enterprise'].map(plan => (
+                    <button key={plan} className={`py-4 rounded-2xl border-2 transition-all font-black uppercase text-[10px] tracking-widest ${plan === 'Enterprise' ? 'border-indigo-600 bg-indigo-50 text-indigo-600' : 'border-slate-100 text-slate-400'}`}>
+                      {plan}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <button
+                onClick={() => { setShowSchoolModal(false); triggerToast('New school shard provisioned successfully.'); }}
+                className="w-full py-5 bg-slate-900 text-white font-black rounded-2xl uppercase tracking-[0.2em] text-xs shadow-2xl shadow-slate-200 hover:bg-indigo-600 transition-all"
+              >
+                Provision Institutional Node
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showToast && (
         <div className="fixed bottom-8 right-8 bg-slate-900 text-white px-8 py-5 rounded-[2rem] shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-right-8 duration-300 z-50 border border-white/10">

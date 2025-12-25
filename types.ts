@@ -264,3 +264,19 @@ export interface VisitorLog {
   branchId: string;
 }
 
+
+export interface PaymentProvider {
+  id: string;
+  name: string;
+  logo: string;
+  isActive: boolean;
+  configFields: string[];
+}
+
+export interface CommunicationProvider {
+  id: string;
+  name: string;
+  type: 'Email' | 'SMS' | 'Push';
+  isActive: boolean;
+  provider: string; // e.g. 'Resend', 'Twilio', 'OneSignal'
+}

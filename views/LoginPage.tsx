@@ -16,6 +16,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     { label: 'Librarian', role: UserRole.LIBRARIAN, icon: BookOpen, color: 'bg-blue-600', branch: 'b1' },
     { label: 'Receptionist', role: UserRole.RECEPTIONIST, icon: Users, color: 'bg-rose-600', branch: 'b1' },
     { label: 'Teacher', role: UserRole.TEACHER, icon: Users, color: 'bg-teal-500', branch: 'b1' },
+    { label: 'Student', role: UserRole.STUDENT, icon: GraduationCap, color: 'bg-amber-500', branch: 'b1' },
   ];
 
   const handleSimulatedLogin = (config: any) => {
