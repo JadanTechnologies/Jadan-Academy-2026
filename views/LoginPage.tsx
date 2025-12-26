@@ -6,7 +6,10 @@ interface LoginPageProps {
   onLogin: (user: User) => void;
 }
 
+import { useInstitution } from '../InstitutionContext';
+
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
+  const { users } = useInstitution();
   const [loading, setLoading] = useState(false);
 
   const roles = [
@@ -87,7 +90,32 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         ))}
       </div>
 
-      <div className="mt-16 w-full max-w-xl z-10">
+      <div className="w-full max-w-md bg-white rounded-[2rem] shadow-2xl p-8 mt-12 z-20">
+        <h3 className="text-xl font-black text-slate-900 uppercase mb-4 text-center">System Access</h3>
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          const email = (e.target as any).email.value;
+          const foundUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+          if (foundUser) {
+            setLoading(true);
+            setTimeout(() => {
+              onLogin(foundUser);
+              setLoading(false);
+            }, 800);
+          } else {
+            // Fallback for demo emails if they aren't in the context yet (though they should be)
+            alert('User not found in local registry. Try the direct access buttons above for demo.');
+          }
+        }} className="space-y-4">
+          <div>
+            <label className="text-[10px] font-black uppercase text-slate-400 block mb-2">Institutional Email ID</label>
+            <input name="email" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500" placeholder="admin@jadan.edu" />
+          </div>
+          <button className="w-full py-4 bg-slate-900 text-white font-black uppercase text-xs rounded-xl hover:bg-indigo-600 transition-all">Secure Login</button>
+        </form>
+      </div>
+
+      <div className="mt-8 w-full max-w-xl z-10">
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
           <div className="flex flex-col md:flex-row justify-between items-center gap-8">
             <div>

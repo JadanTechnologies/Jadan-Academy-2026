@@ -28,7 +28,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ activeTab = '
     setAutoBackupEnabled
   } = useSystem();
 
-  const { schools, addSchool, addBranch, staff } = useInstitution();
+  const { schools, addSchool, addBranch, staff, addStaff } = useInstitution();
 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -44,6 +44,8 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ activeTab = '
   const [newBranchName, setNewBranchName] = useState('');
   const [newBranchLocation, setNewBranchLocation] = useState('');
   const [selectedSchoolId, setSelectedSchoolId] = useState('');
+  const [newAdminName, setNewAdminName] = useState('');
+  const [newAdminEmail, setNewAdminEmail] = useState('');
 
   const [transfers, setTransfers] = useState(() => {
     const saved = localStorage.getItem('super_admin_transfers');
@@ -320,6 +322,9 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ activeTab = '
                 <button onClick={() => setShowBranchModal(true)} className="px-6 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-indigo-600 transition-all shadow-lg">
                   <Building2 size={16} /> Add Campus Shard
                 </button>
+                <button onClick={() => setShowAdminModal(true)} className="px-6 py-3 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-slate-900 transition-all shadow-lg">
+                  <UserPlus size={16} /> Assign Branch Admin
+                </button>
               </div>
             </div>
 
@@ -450,6 +455,60 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ activeTab = '
                 />
               </div>
               <button className="w-full py-4 bg-indigo-600 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl shadow-indigo-100 hover:bg-slate-900 transition-all">Deploy Node</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showAdminModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-10 relative">
+            <button onClick={() => setShowAdminModal(false)} className="absolute top-8 right-8 text-slate-400 hover:text-slate-900"><X size={24} /></button>
+            <h3 className="text-2xl font-black uppercase tracking-tighter mb-8">Deploy Branch Admin</h3>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (!selectedBranch || selectedBranch === 'all' || !newAdminName || !newAdminEmail) {
+                if (!selectedBranch || selectedBranch === 'all') alert('Please select a specific branch from the dropdown above first.');
+                return;
+              }
+
+              addStaff({
+                name: newAdminName,
+                role: 'Principal Administrator',
+                email: newAdminEmail,
+                branchId: selectedBranch,
+                phone: '08000000000',
+                qualification: 'M.Ed',
+                basicSalary: 150000,
+                dateJoined: new Date().toISOString().split('T')[0]
+              });
+
+              setNewAdminName('');
+              setNewAdminEmail('');
+              setShowAdminModal(false);
+              triggerToast(`Administrator "${newAdminName}" deployed to branch.`);
+            }} className="space-y-6">
+              <div>
+                <p className="text-xs font-medium text-slate-500 mb-4 italic">Deploying Admin for: <span className="font-black text-indigo-600">{schools.flatMap(s => s.branches).find(b => b.id === selectedBranch)?.name || 'Unknown Branch'}</span></p>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">Admin Full Name</label>
+                <input
+                  autoFocus
+                  value={newAdminName}
+                  onChange={e => setNewAdminName(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 outline-none font-bold"
+                  placeholder="e.g. Dr. A. Smith"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">Official Email</label>
+                <input
+                  value={newAdminEmail}
+                  onChange={e => setNewAdminEmail(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 outline-none font-bold"
+                  placeholder="admin@school.edu"
+                />
+              </div>
+              <button className="w-full py-4 bg-emerald-600 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl hover:bg-slate-900 transition-all">Authorize Access</button>
             </form>
           </div>
         </div>

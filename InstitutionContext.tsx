@@ -100,6 +100,7 @@ export const InstitutionProvider: React.FC<{ children: ReactNode }> = ({ childre
         if (staffData.role.toLowerCase().includes('bursar')) role = UserRole.BURSAR;
         if (staffData.role.toLowerCase().includes('librarian')) role = UserRole.LIBRARIAN;
         if (staffData.role.toLowerCase().includes('receptionist')) role = UserRole.RECEPTIONIST;
+        if (staffData.role.toLowerCase().includes('principal') || staffData.role.toLowerCase().includes('admin')) role = UserRole.SCHOOL_ADMIN;
 
         const newUser: User = {
             id: `u_${newId}`,
